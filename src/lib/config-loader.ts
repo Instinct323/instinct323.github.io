@@ -12,9 +12,20 @@ import type {
   ProfileData,
   SiteEffectsConfig,
   SiteConfig,
+  SiteImageConfig,
   SiteMetadata,
   StarfieldEffectConfig,
 } from './content-types';
+import {
+  IMAGE_LOADING_EFFECT_NAMES,
+  type ImageLoadingEffectName,
+} from './image-loading-effect-registry';
+
+const IMAGE_LOADING_EFFECT_NAME_SET = new Set<string>(IMAGE_LOADING_EFFECT_NAMES);
+
+function isImageLoadingEffectName(value: string): value is ImageLoadingEffectName {
+  return IMAGE_LOADING_EFFECT_NAME_SET.has(value);
+}
 
 function assertFiniteNumber(value: unknown, key: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
@@ -196,6 +207,115 @@ function resolveStarfieldEffectConfig(config: unknown): StarfieldEffectConfig {
   };
 }
 
+function resolveImageLazyLoadConfig(config: unknown): SiteImageConfig['lazyLoad'] {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    throw new Error('Missing or invalid image.lazyLoad configuration object');
+  }
+
+  const source = config as Partial<SiteImageConfig['lazyLoad']>;
+  const rootMargin = assertString(source.rootMargin, 'image.lazyLoad.rootMargin');
+  const localDebugDelayMs = assertFiniteNumber(
+    source.localDebugDelayMs,
+    'image.lazyLoad.localDebugDelayMs',
+  );
+
+  if (!Number.isInteger(localDebugDelayMs) || localDebugDelayMs < 0) {
+    throw new Error('Missing or invalid image.lazyLoad.localDebugDelayMs (must be a non-negative integer)');
+  }
+
+  return {
+    rootMargin,
+    localDebugDelayMs,
+  };
+}
+
+function resolveImagePlaceholderEffectConfig(config: unknown): SiteImageConfig['placeholderEffect'] {
+  const effectName = assertString(config, 'image.placeholderEffect');
+
+  if (!isImageLoadingEffectName(effectName)) {
+    throw new Error(
+      `Missing or invalid image.placeholderEffect (must be one of: ${IMAGE_LOADING_EFFECT_NAMES.join(', ')})`,
+    );
+  }
+
+  return effectName;
+}
+
+function resolveSiteImageConfig(config: unknown): SiteImageConfig {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    throw new Error('Missing or invalid image configuration object');
+  }
+
+  const source = config as Partial<SiteImageConfig>;
+  const format = assertString(source.format, 'image.format');
+  const quality = assertFiniteNumber(source.quality, 'image.quality');
+
+  if (!Number.isInteger(quality) || quality < 1 || quality > 100) {
+    throw new Error('Missing or invalid image.quality (must be an integer in [1, 100])');
+  }
+
+  const widths = source.widths;
+  if (!widths || typeof widths !== 'object' || Array.isArray(widths)) {
+    throw new Error('Missing or invalid image.widths configuration object');
+  }
+
+  const normalizeWidths = (values: unknown, key: string): number[] => {
+    if (!Array.isArray(values) || values.length === 0) {
+      throw new Error(`Missing or invalid ${key} (must be a non-empty number array)`);
+    }
+
+    return values.map((value) => {
+      if (!Number.isInteger(value) || value <= 0) {
+        throw new Error(`Missing or invalid ${key} entry (must be positive integer)`);
+      }
+      return value;
+    });
+  };
+
+  const dprScale = source.dprScale;
+  if (!dprScale || typeof dprScale !== 'object' || Array.isArray(dprScale)) {
+    throw new Error('Missing or invalid image.dprScale configuration object');
+  }
+
+  const mediumScale = assertFiniteNumber(dprScale.medium, 'image.dprScale.medium');
+  const highScale = assertFiniteNumber(dprScale.high, 'image.dprScale.high');
+  if (mediumScale <= 0 || highScale <= 0) {
+    throw new Error('Missing or invalid image.dprScale values (must be > 0)');
+  }
+
+  return {
+    format,
+    quality,
+    widths: {
+      medium: normalizeWidths(widths.medium, 'image.widths.medium'),
+      high: normalizeWidths(widths.high, 'image.widths.high'),
+    },
+    dprScale: {
+      medium: mediumScale,
+      high: highScale,
+    },
+    lazyLoad: resolveImageLazyLoadConfig(source.lazyLoad),
+    placeholderEffect: resolveImagePlaceholderEffectConfig(source.placeholderEffect),
+  };
+}
+
+function resolvePhotographyConfig(config: SiteConfig['photography']): PhotographyPageConfig {
+  const source = config as Partial<PhotographyPageConfig>;
+
+  if (!source.hero || typeof source.hero !== 'object' || Array.isArray(source.hero)) {
+    throw new Error('Missing or invalid photography.hero configuration object');
+  }
+
+  if (!source.grid || typeof source.grid !== 'object' || Array.isArray(source.grid)) {
+    throw new Error('Missing or invalid photography.grid configuration object');
+  }
+
+  return {
+    hero: source.hero,
+    grid: source.grid,
+  };
+}
+
 function parseSiteConfig(raw: string): SiteConfig {
   const parsed = parse(raw);
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -266,7 +386,7 @@ export async function loadMediaConfig(): Promise<MediaConfig> {
 
   return {
     grid: siteConfig.photography.grid,
-    image: siteConfig.image,
+    image: resolveSiteImageConfig(siteConfig.image),
     homepage: {
       featured: featuredMedia.items,
       carousel: featuredMedia.carousel,
@@ -279,7 +399,7 @@ export async function loadIntroduction(): Promise<string> {
 }
 
 export async function loadPhotography(): Promise<PhotographyPageConfig> {
-  return siteConfig.photography;
+  return resolvePhotographyConfig(siteConfig.photography);
 }
 
 export async function loadSiteMetadata(): Promise<SiteMetadata> {

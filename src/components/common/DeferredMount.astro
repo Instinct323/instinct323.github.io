@@ -1,0 +1,105 @@
+---
+import {
+  DEFERRED_MOUNT_STATE,
+} from '../../lib/deferred-mount-contract';
+
+interface Props {
+  enabled?: boolean;
+  group?: string;
+  placeholderText?: string;
+  announcePlaceholder?: boolean;
+}
+
+function resolveProps(rawProps: Props): {
+  enabled: boolean;
+  group?: string;
+  placeholderText?: string;
+  announcePlaceholder: boolean;
+} {
+  const enabled = rawProps.enabled ?? true;
+  const announcePlaceholder = rawProps.announcePlaceholder ?? false;
+
+  if (typeof enabled !== 'boolean') {
+    throw new Error('DeferredMount expects enabled to be a boolean when provided.');
+  }
+
+  if (typeof announcePlaceholder !== 'boolean') {
+    throw new Error('DeferredMount expects announcePlaceholder to be a boolean when provided.');
+  }
+
+  if (rawProps.group !== undefined && typeof rawProps.group !== 'string') {
+    throw new Error('DeferredMount expects group to be a string when provided.');
+  }
+
+  if (rawProps.placeholderText !== undefined && typeof rawProps.placeholderText !== 'string') {
+    throw new Error('DeferredMount expects placeholderText to be a string when provided.');
+  }
+
+  return {
+    enabled,
+    group: rawProps.group,
+    placeholderText: rawProps.placeholderText,
+    announcePlaceholder,
+  };
+}
+
+const { enabled, group, placeholderText, announcePlaceholder } = resolveProps(Astro.props);
+---
+
+<div
+  class="deferred-mount"
+  data-deferred-mount={enabled ? 'true' : 'false'}
+  data-deferred-state={enabled ? DEFERRED_MOUNT_STATE.pending : DEFERRED_MOUNT_STATE.loaded}
+  data-deferred-group={group}
+  aria-busy={enabled ? 'true' : 'false'}
+>
+  {enabled ? (
+    <>
+      <div
+        class="deferred-placeholder"
+        data-deferred-placeholder
+        data-deferred-placeholder-state="loading"
+        role={announcePlaceholder ? 'status' : undefined}
+        aria-live={announcePlaceholder ? 'polite' : undefined}
+      >
+        <slot name="placeholder">
+          <span class="deferred-placeholder-text" data-deferred-placeholder-text>{placeholderText ?? 'Loading…'}</span>
+        </slot>
+      </div>
+      <div data-deferred-host></div>
+      <template data-deferred-template>
+        <slot />
+      </template>
+      <noscript>
+        <slot />
+      </noscript>
+    </>
+  ) : (
+    <slot />
+  )}
+</div>
+
+<style>
+  .deferred-mount {
+    width: 100%;
+    height: 100%;
+  }
+
+  .deferred-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .deferred-placeholder-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  [data-deferred-host] {
+    width: 100%;
+    height: 100%;
+  }
+</style>

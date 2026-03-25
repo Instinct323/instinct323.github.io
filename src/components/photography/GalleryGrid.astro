@@ -11,7 +11,7 @@ interface Props {
   emptyLabel: string;
   columns: GridColumns;
   gap: string;
-  eagerCount: number;
+  placeholderEffectName: string;
 }
 
 const {
@@ -19,7 +19,7 @@ const {
   emptyLabel,
   columns,
   gap,
-  eagerCount,
+  placeholderEffectName,
 } = Astro.props;
 
 const hasImages = images.length > 0;
@@ -27,8 +27,11 @@ const hasImages = images.length > 0;
 
 <div data-testid="gallery-grid" class="gallery-grid" style={`--columns-desktop: ${columns.desktop}; --columns-mobile: ${columns.mobile}; --gap: ${gap}`}>
   {hasImages ? (
-    images.map((image, index) => (
-      <GalleryImage image={image} eager={index < eagerCount} />
+    images.map((image) => (
+      <GalleryImage
+        image={image}
+        placeholderEffectName={placeholderEffectName}
+      />
     ))
   ) : (
     <EmptyState category={emptyLabel} />

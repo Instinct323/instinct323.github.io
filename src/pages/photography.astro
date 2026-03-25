@@ -2,14 +2,21 @@
 import Layout from '../layouts/Layout.astro';
 import GallerySection from '../components/photography/GallerySection.astro';
 import { loadMediaTree, loadPhotography } from '../lib/content-loader';
+import { loadMediaConfig } from '../lib/config-loader';
 
-const [mediaTree, photographyConfig] = await Promise.all([
+const [mediaTree, photographyConfig, mediaConfig] = await Promise.all([
   loadMediaTree(),
   loadPhotography(),
+  loadMediaConfig(),
 ]);
 
 const { categories } = mediaTree;
 const { hero: heroConfig, grid } = photographyConfig;
+const imageConfig = mediaConfig.image;
+const lazyLoadRuntimeConfig = {
+  rootMargin: imageConfig.lazyLoad.rootMargin,
+  mountDelayMs: import.meta.env.DEV ? imageConfig.lazyLoad.localDebugDelayMs : 0,
+};
 const eyebrowText = heroConfig.eyebrow?.trim() ?? '';
 const descriptionText = heroConfig.description?.trim() ?? '';
 const totalImageCount = categories.reduce((imageCount, category) => {
@@ -55,8 +62,11 @@ const totalImageCount = categories.reduce((imageCount, category) => {
       </div>
     </nav>
 
-    <div class="gallery-container layout-content-container">
-      {categories.map(({ id, images, albums, testId, title }, categoryIndex) => (
+    <div
+      class="gallery-container layout-content-container"
+      data-gallery-lazy-config={JSON.stringify(lazyLoadRuntimeConfig)}
+    >
+      {categories.map(({ id, images, albums, testId, title }) => (
         <GallerySection
           sectionId={id}
           sectionTitle={title}
@@ -65,12 +75,26 @@ const totalImageCount = categories.reduce((imageCount, category) => {
           sectionTestId={testId}
           columns={grid.columns}
           gap={grid.gap}
-          prioritizeAboveFold={categoryIndex === 0}
+          placeholderEffectName={imageConfig.placeholderEffect}
         />
       ))}
     </div>
   </section>
 </Layout>
+
+<script>
+  import { bootstrapDeferredMounts } from '../lib/deferred-mount-bootstrap';
+
+  try {
+    bootstrapDeferredMounts({
+      containerSelector: '.gallery-container[data-gallery-lazy-config]',
+      configDataKey: 'galleryLazyConfig',
+      mountGroup: 'gallery-image',
+    });
+  } catch (e) {
+    console.error('Failed to initialize gallery deferred loading:', e);
+  }
+</script>
 
 <style>
   .photography-page {

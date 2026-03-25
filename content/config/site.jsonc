@@ -104,13 +104,19 @@
     "format": "webp",
     "quality": 95,
     "widths": {
-      "medium": [500, 750, 1000],
-      "high": [960, 1440, 1920, 2560]
+      "medium": [480, 720, 960],
+      "high": [960, 1440, 1920]
     },
     "dprScale": {
       "medium": 1,
       "high": 3
-    }
+    },
+    "lazyLoad": {
+      "rootMargin": "480px 0px",
+      "localDebugDelayMs": 1000
+    },
+    // ref: https://codepen.io/AlexWarnes/pen/jXYYKL
+    "placeholderEffect": "bars-height-wave"
   },
   // Owned by photography page editors; consumed by photography route hero content.
   "photography": {

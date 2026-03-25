@@ -3,65 +3,98 @@
 // Image strategy: keep astro:assets <Image> for gallery cards to use build-time transforms and responsive variants.
 
 import { Image } from 'astro:assets';
+import DeferredMount from '../common/DeferredMount.astro';
+import ImageLoadingEffect from '../common/ImageLoadingEffect.astro';
 
 import type { MediaImage } from '../../lib/content-loader';
 
 interface Props {
   image: MediaImage;
-  eager?: boolean;
+  placeholderEffectName: string;
 }
 
-const { image, eager = false } = Astro.props;
+const {
+  image,
+  placeholderEffectName,
+} = Astro.props;
 const aspectRatio = `${image.width} / ${image.height}`;
 ---
 
 <article data-testid="gallery-image" class="image-card">
   <div
     class="image-wrapper"
-    style={`--aspect-ratio: ${aspectRatio}; --image-width: ${image.width}; --image-height: ${image.height};`}
+    style={`--aspect-ratio: ${aspectRatio};`}
     data-aspect-ratio={aspectRatio}
-    data-image-width={String(image.width)}
-    data-image-height={String(image.height)}
   >
-    <Image
-      src={image.src}
-      alt={image.alt}
-      width={image.width}
-      height={image.height}
-      widths={image.responsive.widths}
-      sizes={image.responsive.sizes}
-      format={image.responsive.format}
-      quality={image.responsive.quality}
-      loading={eager ? 'eager' : 'lazy'}
-      decoding={eager ? 'auto' : 'async'}
-    />
+    <DeferredMount group="gallery-image">
+      <div slot="placeholder" class="image-lazy-placeholder" aria-hidden="true">
+        <ImageLoadingEffect effectName={placeholderEffectName} />
+      </div>
+      <Image
+        src={image.src}
+        alt={image.alt}
+        width={image.width}
+        height={image.height}
+        widths={image.responsive.widths}
+        sizes={image.responsive.sizes}
+        format={image.responsive.format}
+        quality={image.responsive.quality}
+        loading="lazy"
+        decoding="async"
+      />
+    </DeferredMount>
   </div>
   {image.caption && <p class="caption">{image.caption}</p>}
 </article>
 
 <style>
   .image-card {
-    /* Minimal chrome - just subtle background, no heavy border */
-    background: rgba(255, 255, 255, 0.65);
-    border-radius: 0.375rem;
+    background: var(--image-load-card-bg);
+    border-radius: var(--image-load-card-radius);
     overflow: hidden;
-    /* Very subtle border that doesn't fight starry atmosphere */
-    border: 1px solid rgba(203, 213, 225, 0.2);
+    border: 1px solid var(--image-load-card-border);
     transition:
-      box-shadow var(--motion-duration-md, 250ms) var(--motion-ease-smooth, ease),
-      transform var(--motion-duration-md, 250ms) var(--motion-ease-smooth, ease);
+      box-shadow var(--motion-duration-md) var(--motion-ease-smooth),
+      transform var(--motion-duration-md) var(--motion-ease-smooth);
   }
 
   .image-card:hover {
-    box-shadow: 0 2px 8px rgba(16, 42, 67, 0.08);
-    transform: translateY(-1px);
+    box-shadow: var(--image-load-card-hover-shadow);
+    transform: var(--image-load-card-hover-lift);
   }
 
   .image-wrapper {
     aspect-ratio: var(--aspect-ratio);
     overflow: hidden;
     position: relative;
-    background: rgba(241, 245, 249, 0.5);
+    background: var(--image-load-placeholder-bg);
+  }
+
+  .image-wrapper :global(.deferred-mount) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .image-wrapper :global([data-deferred-host]) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .image-wrapper :global(.image-lazy-placeholder) {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: var(--image-load-placeholder-bg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .image-card {
+      transition: none;
+    }
   }
 
   .image-wrapper :global(img) {
@@ -75,12 +108,10 @@ const aspectRatio = `${image.width} / ${image.height}`;
 
   .caption {
     margin: 0;
-    padding: 0.625rem 0.875rem;
-    /* Subdued caption - lighter text on transparent surface */
+    padding: var(--image-load-caption-padding);
     color: var(--text-muted);
-    font-size: 0.8125rem;
-    /* No border-top to keep it light; just subtle background separation */
-    background: rgba(248, 250, 252, 0.4);
+    font-size: var(--image-load-caption-font-size);
+    background: var(--image-load-caption-bg);
     line-height: 1.4;
   }
 

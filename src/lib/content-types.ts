@@ -1,4 +1,5 @@
 import type { ImageMetadata } from 'astro';
+import type { ImageLoadingEffectName } from './image-loading-effect-registry';
 
 export interface ProfileFact {
   id: string;
@@ -114,6 +115,11 @@ export interface SiteImageConfig {
     medium: number;
     high: number;
   };
+  lazyLoad: {
+    rootMargin: string;
+    localDebugDelayMs: number;
+  };
+  placeholderEffect: ImageLoadingEffectName;
 }
 
 export interface StarfieldEffectConfig {

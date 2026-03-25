@@ -105,6 +105,23 @@
   --header-surface-bg: rgba(15, 23, 42, 0.62);
   --header-surface-border: rgba(148, 163, 184, 0.24);
 
+  --image-load-effect-size: 40px;
+  --image-load-effect-size-lg: 48px;
+  --image-load-bars-width: 24px;
+  --image-load-bars-height: 30px;
+  --image-load-bars-width-lg: 28px;
+  --image-load-bars-height-lg: 34px;
+  --image-load-static-dot-size: 10px;
+  --image-load-static-dot-color: rgba(51, 51, 51, 0.5);
+  --image-load-placeholder-bg: rgba(29, 38, 48, 0);
+  --image-load-card-bg: rgba(255, 255, 255, 0.65);
+  --image-load-card-radius: 0.375rem;
+  --image-load-card-border: rgba(203, 213, 225, 0.2);
+  --image-load-card-hover-shadow: 0 2px 8px rgba(16, 42, 67, 0.08);
+  --image-load-card-hover-lift: translateY(-1px);
+  --image-load-caption-bg: rgba(248, 250, 252, 0.4);
+  --image-load-caption-font-size: 0.8125rem;
+  --image-load-caption-padding: 0.625rem 0.875rem;
 }
 
 @media (max-width: 768px) {

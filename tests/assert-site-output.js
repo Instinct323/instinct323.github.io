@@ -7,7 +7,7 @@ import { parse as parseJsonc } from 'jsonc-parser';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SITE_DIR = path.resolve(__dirname, '..');
 const DIST_DIR = path.join(SITE_DIR, 'dist');
-const SITE_CONFIG_PATH = path.join(SITE_DIR, 'content', 'config', 'site.jsonc');
+const SITE_CONFIG_PATH = path.join(SITE_DIR, 'content', 'config.jsonc');
 
 const ROUTE_HTML_FILES = new Map([
   ['/', path.join(DIST_DIR, 'index.html')],

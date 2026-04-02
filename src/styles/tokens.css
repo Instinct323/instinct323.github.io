@@ -128,7 +128,7 @@
   --image-load-empty-text: rgba(255, 255, 255, 0.35);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   :root {
     font-size: 14px;
   }

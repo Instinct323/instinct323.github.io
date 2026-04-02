@@ -10,6 +10,7 @@ import type {
   MediaTree,
 } from './content-types';
 import {
+  MOBILE_BREAKPOINT,
   HOME_COVERFLOW_SIZES,
   IMAGE_MEDIUM_WIDTHS_KEY,
   assertMediaConfigShape,
@@ -23,7 +24,7 @@ import {
 
 let mediaConfigCache: MediaConfig | null = null;
 let mediaConfigPromise: Promise<MediaConfig> | null = null;
-const ABOUT_AVATAR_SIZES = '(max-width: 767px) 180px, 220px';
+const ABOUT_AVATAR_SIZES = `(max-width: ${MOBILE_BREAKPOINT}px) 180px, 220px`;
 const ABOUT_AVATAR_INFERRED_WIDTHS = [180, 220];
 
 interface SurfaceSizingProfile {
@@ -137,7 +138,7 @@ function buildGallerySizes(grid: MediaConfig['grid']): string {
   const desktopWidth = (100 / desktopColumns).toFixed(2);
 
   return [
-    `(max-width: 767px) ${mobileWidth}vw`,
+    `(max-width: ${MOBILE_BREAKPOINT}px) ${mobileWidth}vw`,
     `${desktopWidth}vw`,
   ].join(', ');
 }

@@ -1,6 +1,4 @@
-import introductionRaw from '../../content/config/introduction.md?raw';
-import profile from '../../content/config/profile.json';
-import siteConfigRaw from '../../content/config/site.jsonc?raw';
+import { introductionRaw, profile, siteConfigRaw } from './paths';
 import { parse } from 'jsonc-parser';
 import { assertBoolean, assertFiniteNumber, assertObject, assertString } from './assertions';
 

@@ -22,6 +22,7 @@ import {
 import { renderMarkdown } from './markdown';
 import type { Publication } from './content-types';
 import { normalizePublication } from './publication-utils';
+import { AVATAR_JPG } from './paths';
 
 export type {
   AboutPageData,
@@ -73,8 +74,9 @@ const REQUIRED_PROFILE_FACT_IDS = ['name', 'organization', 'location'] as const;
 
 type RequiredProfileFactId = (typeof REQUIRED_PROFILE_FACT_IDS)[number];
 
+// Publication modules glob — paths defined in paths.ts: PUBLICATION_DIR
 const PUBLICATION_MODULES = import.meta.glob<{ default: Publication }>(
-  '../../content/publication/*.json',
+  '../../content/about/publication/*.json',
   { eager: true },
 );
 
@@ -142,10 +144,10 @@ export async function loadAboutAvatarImage(profileData: ProfileData): Promise<Co
   const aboutImageOptions = await deriveContentImageOptions('about', {
     alt: resolveAvatarAltFromProfile(profileData),
   });
-  const avatarImage = await loadContentImage('config/avatar.jpg', aboutImageOptions);
+  const avatarImage = await loadContentImage(AVATAR_JPG.replace('../../content/', ''), aboutImageOptions);
 
   if (!avatarImage) {
-    throw new Error('Missing about avatar image: content/config/avatar.jpg');
+    throw new Error(`Missing about avatar image: ${AVATAR_JPG}`);
   }
 
   return avatarImage;

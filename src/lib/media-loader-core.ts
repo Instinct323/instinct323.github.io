@@ -5,9 +5,11 @@ import {
   compareNatural,
   filenameWithoutExt,
   folderNameToSlug,
+  sanitizePositiveWidths,
   slugToTitle,
   stripNumericPrefix,
 } from './content-normalize';
+import { PHOTOGRAPHY_FILTER } from './paths';
 import type {
   ContentImage,
   ContentImageOptions,
@@ -29,6 +31,7 @@ interface ParsedMediaPath {
   categoryTitle: string;
 }
 
+// Image modules glob — filtered by PHOTOGRAPHY_FILTER at runtime
 export const CONTENT_IMAGE_MODULES = import.meta.glob<{ default: ImageMetadata }>(
   '../../content/**/*.{jpg,jpeg,png,webp}',
   { eager: true }
@@ -38,6 +41,7 @@ const CONTENT_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp)$/i;
 
 
 export const RESPONSIVE_WIDTH_STEPS = [320, 480, 640, 768, 960, 1200, 1600, 2000, 2400];
+export const MOBILE_BREAKPOINT = 767;
 export const HOME_COVERFLOW_MOBILE_BREAKPOINT = 767;
 export const HOME_COVERFLOW_SIZES = `(max-width: ${HOME_COVERFLOW_MOBILE_BREAKPOINT}px) 480px, (max-width: 1024px) 640px, 768px`;
 export const RESPONSIVE_VIEWPORT_WIDTHS = {
@@ -301,18 +305,18 @@ function normalizeCandidateWidths(
 
 function validateHomepageFeaturedPath(entry: unknown, index: number): string {
   if (typeof entry !== 'string' || !entry.trim()) {
-    throw new Error(`Invalid homepage.featured[${index}]: expected a non-empty string path relative to content/media/.`);
+    throw new Error(`Invalid homepage.featured[${index}]: expected a non-empty string path relative to content/photography/.`);
   }
 
   const rawPath = entry.trim();
-  const normalizedPath = normalizeContentImagePath(`media/${rawPath}`);
+  const normalizedPath = normalizeContentImagePath(`photography/${rawPath}`);
 
-  if (!normalizedPath || !normalizedPath.startsWith('media/')) {
-    throw new Error(`Invalid homepage.featured[${index}]: "${rawPath}" is not a valid content/media image path.`);
+  if (!normalizedPath || !normalizedPath.startsWith('photography/')) {
+    throw new Error(`Invalid homepage.featured[${index}]: "${rawPath}" is not a valid content/photography image path.`);
   }
 
   if (!resolveContentImageMetadata(normalizedPath)) {
-    throw new Error(`Invalid homepage.featured[${index}]: "${rawPath}" does not resolve to an existing image under content/media/.`);
+    throw new Error(`Invalid homepage.featured[${index}]: "${rawPath}" does not resolve to an existing image under content/photography/.`);
   }
 
   return normalizedPath;
@@ -416,12 +420,21 @@ export function resolveContentImageMetadata(path: string): ImageMetadata | null 
     return null;
   }
 
-  return CONTENT_IMAGE_MODULES[`../../content/${normalizedPath}`]?.default ?? null;
+  // Try direct path first
+  const directMatch = CONTENT_IMAGE_MODULES[`../../content/${normalizedPath}`]?.default;
+  if (directMatch) {
+    return directMatch;
+  }
+
+  // Try with photography/ prefix for featured media paths
+  // config.jsonc paths like "0-travel/..." need to map to "photography/0-travel/..."
+  const withPhotographyPrefix = `photography/${normalizedPath}`;
+  return CONTENT_IMAGE_MODULES[`../../content/${withPhotographyPrefix}`]?.default ?? null;
 }
 
 function parseMediaPath(path: string): ParsedMediaPath | null {
   const segments = path.split('/');
-  const mediaIndex = segments.indexOf('media');
+  const mediaIndex = segments.indexOf('photography');
 
   if (mediaIndex === -1 || segments.length <= mediaIndex + 2) {
     return null;
@@ -451,7 +464,7 @@ function fallbackAltFromContentPath(path: string): string {
     return 'Image';
   }
 
-  if (normalizedPath.startsWith('media/')) {
+  if (normalizedPath.startsWith('photography/')) {
     const parsed = parseMediaPath(`../../content/${normalizedPath}`);
     if (parsed?.alt) {
       return parsed.alt;
@@ -477,7 +490,7 @@ function getMaxResponsiveWidth(source: ImageMetadata, maxLongEdge: number): numb
 }
 
 function deriveResponsiveWidths(source: ImageMetadata, options: ContentImageOptions): number[] {
-  const explicitWidths = normalizeExplicitWidths(options.widths);
+  const explicitWidths = sanitizePositiveWidths(options.widths);
 
   if (explicitWidths.length > 0) {
     return capWidthsBySourceWidth(explicitWidths, source.width);
@@ -530,22 +543,6 @@ export function loadContentImageResolved(path: string, options: ContentImageOpti
     aspectRatio: source.width / source.height,
     responsive: buildContentImageResponsive(source, options),
   };
-}
-
-function normalizeExplicitWidths(widths: number[] | undefined): number[] {
-  if (!Array.isArray(widths)) {
-    return [];
-  }
-
-  const normalized = Array.from(
-    new Set(
-      widths
-        .map((width) => Math.round(width))
-        .filter((width) => Number.isFinite(width) && width > 0),
-    ),
-  ).sort((a, b) => a - b);
-
-  return normalized;
 }
 
 function capWidthsBySourceWidth(widths: number[], sourceWidth: number): number[] {
@@ -682,7 +679,7 @@ export async function loadMediaTreeFromGallery(
   const categoryMap = new Map<string, CategoryAccumulator>();
 
   for (const [path, mod] of Object.entries(CONTENT_IMAGE_MODULES).sort(compareMediaModuleEntries)) {
-    if (!path.includes('/content/media/') || !mod?.default) {
+    if (!path.includes(PHOTOGRAPHY_FILTER) || !mod?.default) {
       continue;
     }
 

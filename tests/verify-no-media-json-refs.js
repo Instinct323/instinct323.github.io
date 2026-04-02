@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const SCAN_TARGETS = [
   path.join(ROOT_DIR, 'src'),
-  path.join(ROOT_DIR, 'content', 'config'),
+  path.join(ROOT_DIR, 'content', 'about'),
 ];
 const TEXT_FILE_EXTENSIONS = new Set(['.astro', '.js', '.json', '.jsonc', '.md', '.mjs', '.ts']);
 const MEDIA_JSON_REF_PATTERN = /(?:content\/media\/[^\s'"`)]+\.json|['"`][^'"`\n]*media[^'"`\n]*\.json['"`])/g;

@@ -17,6 +17,7 @@ pnpm dev
 │   ├── components/           # Astro UI components
 │   ├── layouts/              # Shared layout shell
 │   ├── lib/                  # Config/content/media loaders
+│   │   └── paths.ts          # Centralized resource path definitions
 │   ├── pages/                # Route entry pages
 │   └── styles/               # Global tokens and shared styles
 ├── tests/

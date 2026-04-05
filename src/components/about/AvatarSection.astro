@@ -4,9 +4,9 @@
 // Responsive variant generation is centralized in media-loader-core for cross-surface consistency.
 
 import DeferredImage from '../common/DeferredImage.astro';
-import type { ContentImage } from '../../lib/content-loader';
-import { buildImageVariantSet } from '../../lib/media-loader-core';
-import { resolveControlImageLoading } from '../../lib/page-load-orchestrator';
+import type { ContentImage } from '../../lib/loaders/content-loader';
+import { buildImageVariantSet } from '../../lib/loaders/media-loader-core';
+import { resolveControlImageLoading } from '../../lib/loaders/page-load-orchestrator';
 
 interface Props {
   avatarImage: ContentImage;
@@ -49,9 +49,9 @@ const criticalImageLoading = resolveControlImageLoading('critical');
 
   .avatar-frame {
     width: 100%;
-    max-width: 220px;
+    max-width: var(--avatar-max-width);
     aspect-ratio: 3 / 4;
-    border-radius: var(--radius-sm, 0.5rem);
+    border-radius: var(--radius-sm);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     overflow: hidden;
   }
@@ -65,7 +65,7 @@ const criticalImageLoading = resolveControlImageLoading('critical');
 
   @media (max-width: 767px) {
     .avatar-frame {
-      max-width: 180px;
+      max-width: var(--avatar-max-width-mobile);
       aspect-ratio: 1;
       border-radius: 50%;
     }

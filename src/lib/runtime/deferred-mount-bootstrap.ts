@@ -1,6 +1,6 @@
 import { buildDeferredMountGroupSelector } from './deferred-mount-contract';
 import { initDeferredMounts } from './deferred-mount-runtime';
-import { assertString } from './assertions';
+import { assertString } from '../utils/assertions';
 
 export interface DeferredMountBootstrapOptions {
   containerSelector: string;

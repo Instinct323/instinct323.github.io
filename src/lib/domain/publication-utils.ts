@@ -1,4 +1,5 @@
-import type { Publication } from './content-types';
+import type { Publication } from '../../types';
+import { assertString } from '../utils/assertions';
 
 interface RawPublication {
   title?: unknown;
@@ -10,11 +11,11 @@ interface RawPublication {
 }
 
 function assertNonEmptyString(value: unknown, key: string, filePath: string): string {
-  if (typeof value !== 'string' || !value.trim()) {
+  try {
+    return assertString(value, key);
+  } catch {
     throw new Error(`Invalid publication field "${key}" in ${filePath}`);
   }
-
-  return value.trim();
 }
 
 function assertAuthors(value: unknown, filePath: string): string[] {
@@ -22,9 +23,7 @@ function assertAuthors(value: unknown, filePath: string): string[] {
     throw new Error(`Invalid publication field "authors" in ${filePath}`);
   }
 
-  const authors = value
-    .map((author) => (typeof author === 'string' ? author.trim() : ''))
-    .filter(Boolean);
+  const authors = value.map((author, i) => assertString(author, `authors[${i}]`));
 
   if (authors.length === 0) {
     throw new Error(`Invalid publication field "authors" in ${filePath}`);

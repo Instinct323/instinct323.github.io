@@ -1,8 +1,7 @@
-import { loadNavigationConfig } from './config-loader';
-import type { SiteNavigation, SitePageKey } from './content-types';
+import { loadNavigationConfig } from '../loaders/config-loader';
 
 export interface SiteNavRoute {
-  key: SitePageKey;
+  key: string;
   href: string;
   navTestId: string;
 }
@@ -16,7 +15,7 @@ export interface SiteNavModel {
   items: SiteNavItem[];
 }
 
-const NAV_ROUTES: Record<SitePageKey, SiteNavRoute> = {
+const NAV_ROUTES: Record<string, SiteNavRoute> = {
   home: {
     key: 'home',
     href: '/',
@@ -32,24 +31,33 @@ const NAV_ROUTES: Record<SitePageKey, SiteNavRoute> = {
     href: '/photography',
     navTestId: 'nav-photography',
   },
+  blog: {
+    key: 'blog',
+    href: '/blog',
+    navTestId: 'nav-blog',
+  },
 };
 
-const PRIMARY_NAV_ORDER: SitePageKey[] = ['home', 'about', 'photography'];
 
-function buildNavItems(links: SiteNavigation['labels'], routeKeys: SitePageKey[]): SiteNavItem[] {
+export function formatPageLabel(key: string): string {
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+function buildNavItems(routeKeys: string[]): SiteNavItem[] {
   return routeKeys.map((key) => ({
     key,
     href: NAV_ROUTES[key].href,
     navTestId: NAV_ROUTES[key].navTestId,
-    label: links[key].trim(),
+    label: formatPageLabel(key),
   }));
 }
 
 export async function loadPrimaryNavModel(): Promise<SiteNavModel> {
   const navigation = await loadNavigationConfig();
+  const order = navigation.order;
 
   return {
-    ariaLabel: navigation.ariaLabels.primary,
-    items: buildNavItems(navigation.labels, PRIMARY_NAV_ORDER),
+    ariaLabel: '',
+    items: buildNavItems(order),
   };
 }

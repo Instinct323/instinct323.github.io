@@ -5,31 +5,30 @@ import {
   loadProfile,
   loadSiteConfig,
 } from './config-loader';
-import { compareNatural, stripNumericPrefix } from './content-normalize';
+import { compareNatural, stripNumericPrefix } from '../utils/content-normalize';
 import type {
   AboutPageData,
   ContentImage,
   HomePageData,
   ProfileData,
   ResolvedProfileData,
-} from './content-types';
+} from '../../types';
 import {
   deriveContentImageOptions,
   loadContentImage,
   loadFeaturedSlides,
   loadMediaTree,
 } from './media-loader';
-import { renderMarkdown } from './markdown';
-import type { Publication } from './content-types';
-import { normalizePublication } from './publication-utils';
-import { AVATAR_JPG } from './paths';
+import { renderMarkdown } from '../utils/markdown';
+import type { Publication } from '../../types';
+import { normalizePublication } from '../domain/publication-utils';
+import { AVATAR_JPG } from './content-paths';
 
 export type {
   AboutPageData,
   ContentImage,
   ContentImageOptions,
   ContentImageResponsive,
-  ContentImageSurface,
   FeaturedSlide,
   GridColumns,
   Home,
@@ -48,15 +47,13 @@ export type {
   HomepageEditorialGapVariant,
   HomepageHeroDeckField,
   HomepageSectionKey,
-  Photography,
-  PhotographyHero,
   PhotographyPageConfig,
   ProfileData,
   ResolvedProfileData,
   ProfileFact,
   Publication,
   SiteConfig,
-} from './content-types';
+} from '../../types';
 
 export {
   deriveContentImageOptions,
@@ -74,9 +71,11 @@ const REQUIRED_PROFILE_FACT_IDS = ['name', 'organization', 'location'] as const;
 
 type RequiredProfileFactId = (typeof REQUIRED_PROFILE_FACT_IDS)[number];
 
-// Publication modules glob — paths defined in paths.ts: PUBLICATION_DIR
+// Publication modules glob — paths defined in content-paths.ts: PUBLICATION_GLOB
+// Using hardcoded path because Vite's import.meta.glob requires string literals
+// See PUBLICATION_GLOB constant in content-paths.ts for the canonical path
 const PUBLICATION_MODULES = import.meta.glob<{ default: Publication }>(
-  '../../content/about/publication/*.json',
+  '../../../content/about/publication/*.json',
   { eager: true },
 );
 
@@ -134,7 +133,7 @@ export async function loadAboutPageFrame(): Promise<Omit<AboutPageData, 'avatarI
   ]);
 
   return {
-    profile: profileData,
+    profile: normalizeProfileForHome(profileData),
     introductionHtml: renderMarkdown(introduction),
     publications,
   };

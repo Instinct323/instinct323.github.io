@@ -1,10 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import GallerySection from '../components/photography/GallerySection.astro';
-import { loadMediaTree, loadPhotography } from '../lib/content-loader';
-import { loadMediaConfig } from '../lib/config-loader';
-import { buildDeferredMountRuntimePayload } from '../lib/deferred-mount-page';
-import { orchestratePageLoad } from '../lib/page-load-orchestrator';
+import { loadMediaTree, loadPhotography } from '../lib/loaders/content-loader';
+import { loadMediaConfig } from '../lib/loaders/config-loader';
+import { buildDeferredMountRuntimePayload } from '../lib/runtime/deferred-mount-page';
+import { orchestratePageLoad } from '../lib/loaders/page-load-orchestrator';
 
 const photographyLoad = await orchestratePageLoad({
   frame: async () => {
@@ -29,40 +29,16 @@ const {
 } = photographyLoad.frame;
 
 const { categories } = mediaTree;
-const { hero: heroConfig, grid } = photographyConfig;
+const { grid } = photographyConfig;
 const imageConfig = mediaConfig.image;
 const galleryLazyRuntimePayload = buildDeferredMountRuntimePayload(imageConfig.lazyLoad, import.meta.env.DEV);
-const eyebrowText = heroConfig.eyebrow?.trim() ?? '';
-const descriptionText = heroConfig.description?.trim() ?? '';
-const totalImageCount = categories.reduce((imageCount, category) => {
-  const directCount = category.images.length;
-  const albumCount = (category.albums ?? []).reduce(
-    (albumSum, album) => albumSum + album.images.length,
-    0,
-  );
-  return imageCount + directCount + albumCount;
-}, 0);
 ---
 
 <Layout
-  pageKey="photography"
   shell="photography"
   contentWidth="wide"
 >
-  <section class="photography-page">
-    <header class="hero-block" data-testid="photography-hero">
-      {eyebrowText && (
-        <p class="site-eyebrow hero-eyebrow-accent eyebrow-accent" data-testid="photography-eyebrow">{eyebrowText}</p>
-      )}
-      <h1 class="site-hero-title hero-title-accent title-accent" data-testid="photography-page-title">{heroConfig.title}</h1>
-      <p class="meta-line">{categories.length} categories · {totalImageCount} images</p>
-      {descriptionText && (
-        <p class="page-description" data-testid="photography-page-description">
-          {descriptionText}
-        </p>
-      )}
-    </header>
-
+  <section class="photography-page page-container">
     <nav class="sticky-nav" data-testid="photography-sticky-nav" aria-label="Gallery sections">
       <div class="nav-inner layout-content-container">
         {categories.map((category) => (
@@ -101,7 +77,7 @@ const totalImageCount = categories.reduce((imageCount, category) => {
   import {
     buildDeferredMountBootstrapOptions,
     initDeferredMountGroupSafely,
-  } from '../lib/deferred-mount-page';
+  } from '../lib/runtime/deferred-mount-page';
 
   initDeferredMountGroupSafely(
     buildDeferredMountBootstrapOptions(
@@ -115,8 +91,7 @@ const totalImageCount = categories.reduce((imageCount, category) => {
 
 <style>
   .photography-page {
-    flex: 1;
-    padding: var(--space-section-y) 0;
+    /* Uses .page-container from layout-shell.css for padding */
     width: 100%;
     box-sizing: border-box;
     --sticky-nav-padding-y: 0.75rem;
@@ -132,36 +107,6 @@ const totalImageCount = categories.reduce((imageCount, category) => {
     );
   }
 
-  .hero-block {
-    padding: clamp(0.75rem, 2vw, 1.25rem) var(--space-page-x);
-    text-align: center;
-  }
-
-  .eyebrow-accent {
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  }
-
-  .title-accent {
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
-  }
-
-  .meta-line {
-    margin: 0 0 var(--space-stack-sm);
-    font-size: 0.8125rem;
-    color: var(--hero-text-light-muted);
-    letter-spacing: 0.02em;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-  }
-
-  .page-description {
-    margin: 0 auto;
-    max-width: var(--measure-subhead);
-    color: var(--hero-text-light-muted);
-    font-size: 1rem;
-    line-height: 1.55;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  }
-
   .sticky-nav {
     position: sticky;
     top: var(--header-height);
@@ -169,7 +114,7 @@ const totalImageCount = categories.reduce((imageCount, category) => {
     min-height: var(--sticky-nav-height);
     box-sizing: border-box;
 
-    padding: var(--sticky-nav-padding-y) var(--space-page-x);
+    padding: 0.0rem var(--space-page-x) 3rem var(--space-page-x);
     /* Background and border removed - nav overlays content directly without mask */
   }
 
@@ -212,39 +157,11 @@ const totalImageCount = categories.reduce((imageCount, category) => {
     outline-offset: 2px;
   }
 
-  .gallery-container {
-    padding-top: var(--space-stack-lg);
-  }
-
   @media (max-width: 767px) {
-    .hero-block {
-      padding: 0.625rem 1rem 0.5rem;
-    }
-
-    .eyebrow-accent {
-      font-size: 0.6875rem;
-      letter-spacing: 0.14em;
-    }
-
-    .title-accent {
-      margin-bottom: 0.5rem;
-      font-size: clamp(2rem, 10.5vw, 2.5rem);
-      line-height: 1.08;
-    }
-
-    .meta-line {
-      font-size: 0.8125rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .page-description {
-      font-size: 0.96rem;
-      line-height: 1.6;
-    }
-
     .sticky-nav {
       --sticky-nav-padding-y: 0.625rem;
       padding-inline: 1rem;
+      padding-bottom: 1.5rem;
     }
 
     .nav-inner {
@@ -266,10 +183,6 @@ const totalImageCount = categories.reduce((imageCount, category) => {
       padding: 0.375rem 0.8125rem;
       font-size: 0.8125rem;
       scroll-snap-align: start;
-    }
-
-    .gallery-container {
-      padding-top: var(--space-stack-sm);
     }
   }
 </style>

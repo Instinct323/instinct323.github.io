@@ -1,7 +1,8 @@
 ---
 import {
   DEFERRED_MOUNT_STATE,
-} from '../../lib/deferred-mount-contract';
+} from '../../lib/runtime/deferred-mount-contract';
+import { assertBoolean, assertString } from '../../lib/utils/assertions';
 
 interface Props {
   enabled?: boolean;
@@ -16,29 +17,36 @@ function resolveProps(rawProps: Props): {
   placeholderText?: string;
   announcePlaceholder: boolean;
 } {
-  const enabled = rawProps.enabled ?? true;
-  const announcePlaceholder = rawProps.announcePlaceholder ?? false;
-
-  if (typeof enabled !== 'boolean') {
-    throw new Error('DeferredMount expects enabled to be a boolean when provided.');
+  // Fail-fast: enabled must be explicitly provided or true
+  let enabled: boolean;
+  if (rawProps.enabled !== undefined) {
+    enabled = assertBoolean(rawProps.enabled, 'DeferredMount.enabled');
+  } else {
+    enabled = true;
   }
 
-  if (typeof announcePlaceholder !== 'boolean') {
-    throw new Error('DeferredMount expects announcePlaceholder to be a boolean when provided.');
+  // Fail-fast: announcePlaceholder must be explicitly provided or false
+  let announcePlaceholder: boolean;
+  if (rawProps.announcePlaceholder !== undefined) {
+    announcePlaceholder = assertBoolean(rawProps.announcePlaceholder, 'DeferredMount.announcePlaceholder');
+  } else {
+    announcePlaceholder = false;
   }
 
-  if (rawProps.group !== undefined && typeof rawProps.group !== 'string') {
-    throw new Error('DeferredMount expects group to be a string when provided.');
+  let group: string | undefined;
+  if (rawProps.group !== undefined) {
+    group = assertString(rawProps.group, 'DeferredMount.group');
   }
 
-  if (rawProps.placeholderText !== undefined && typeof rawProps.placeholderText !== 'string') {
-    throw new Error('DeferredMount expects placeholderText to be a string when provided.');
+  let placeholderText: string | undefined;
+  if (rawProps.placeholderText !== undefined) {
+    placeholderText = assertString(rawProps.placeholderText, 'DeferredMount.placeholderText');
   }
 
   return {
     enabled,
-    group: rawProps.group,
-    placeholderText: rawProps.placeholderText,
+    group,
+    placeholderText,
     announcePlaceholder,
   };
 }
@@ -63,7 +71,7 @@ const { enabled, group, placeholderText, announcePlaceholder } = resolveProps(As
         aria-live={announcePlaceholder ? 'polite' : undefined}
       >
         <slot name="placeholder">
-          <span class="deferred-placeholder-text" data-deferred-placeholder-text>{placeholderText ?? 'Loading…'}</span>
+          <span class="deferred-placeholder-text" data-deferred-placeholder-text>{placeholderText !== undefined ? placeholderText : 'Loading…'}</span>
         </slot>
       </div>
       <div data-deferred-host></div>

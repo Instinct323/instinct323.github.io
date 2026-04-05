@@ -1,5 +1,5 @@
 ---
-import { loadPrimaryNavModel } from '../lib/site-navigation';
+import { loadPrimaryNavModel } from '../../lib/domain/site-navigation';
 
 const currentRoutePath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const primaryNavigation = await loadPrimaryNavModel();

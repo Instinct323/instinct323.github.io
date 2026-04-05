@@ -4,10 +4,10 @@ import AvatarSection from '../components/about/AvatarSection.astro';
 import ContentSection from '../components/about/ContentSection.astro';
 import ProfileCard from '../components/about/ProfileCard.astro';
 import PublicationsSection from '../components/about/PublicationsSection.astro';
-import { loadAboutAvatarImage, loadAboutPageFrame } from '../lib/content-loader';
-import { loadMediaConfig } from '../lib/config-loader';
-import { buildDeferredMountRuntimePayload } from '../lib/deferred-mount-page';
-import { orchestratePageLoad } from '../lib/page-load-orchestrator';
+import { loadAboutAvatarImage, loadAboutPageFrame } from '../lib/loaders/content-loader';
+import { loadMediaConfig } from '../lib/loaders/config-loader';
+import { buildDeferredMountRuntimePayload } from '../lib/runtime/deferred-mount-page';
+import { orchestratePageLoad } from '../lib/loaders/page-load-orchestrator';
 
 const aboutLoad = await orchestratePageLoad({
   frame: async () => {
@@ -33,12 +33,11 @@ const profileName = profile.facts.find(({ id }) => id === 'name')?.value;
 ---
 
 <Layout
-  pageKey="about"
   shell="about"
   contentWidth="wide"
 >
   <section
-    class="about-page layout-content-container"
+    class="about-page page-container layout-content-container"
     data-about-avatar-lazy-config={avatarLazyRuntimePayload}
   >
     <div class="about-container">
@@ -62,7 +61,7 @@ const profileName = profile.facts.find(({ id }) => id === 'name')?.value;
   import {
     buildDeferredMountBootstrapOptions,
     initDeferredMountGroupSafely,
-  } from '../lib/deferred-mount-page';
+  } from '../lib/runtime/deferred-mount-page';
 
   initDeferredMountGroupSafely(
     buildDeferredMountBootstrapOptions(
@@ -76,9 +75,7 @@ const profileName = profile.facts.find(({ id }) => id === 'name')?.value;
 
 <style>
   .about-page {
-    flex: 1;
-    padding: var(--space-section-y) var(--space-page-x);
-    position: relative;
+    /* Uses .page-container from layout-shell.css for padding */
   }
 
   .about-container {
@@ -111,10 +108,6 @@ const profileName = profile.facts.find(({ id }) => id === 'name')?.value;
   }
 
   @media (max-width: 767px) {
-    .about-page {
-      padding: var(--space-stack-lg) 0;
-    }
-
     .about-container {
       grid-template-columns: 1fr;
       gap: 1.5rem;

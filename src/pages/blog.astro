@@ -1,0 +1,232 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { loadBlogPosts } from '../lib/loaders/blog-loader';
+import { renderMarkdown } from '../lib/utils/markdown';
+
+const posts = loadBlogPosts();
+const initialPost = posts[0];
+const initialContentHtml = renderMarkdown(initialPost.content, { fileURL: initialPost.baseUrl });
+---
+
+<Layout
+  title="Blog"
+  description="Blog posts and articles"
+  contentWidth="wide"
+>
+  <section class="blog-page page-container layout-content-container">
+    <div class="blog-container">
+      <aside class="blog-list" id="blog-list">
+        {posts.map((post, index) => (
+          <button
+            class:list={['card', 'blog-item', { active: index === 0 }]}
+            data-slug={post.slug}
+            data-title={post.title}
+            data-content={post.content}
+            data-base-url={post.baseUrl}
+          >
+            <h3 class="blog-item-title">{post.title}</h3>
+            <div class="blog-item-date">
+              <span class="date-mask" />
+              <time datetime={post.date.toISOString()}>
+                {post.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </time>
+            </div>
+          </button>
+        ))}
+      </aside>
+
+      <div class="blog-detail">
+        <article class="card" id="blog-detail-card">
+          <h1 id="detail-title">{initialPost.title}</h1>
+          <div id="detail-content" set:html={initialContentHtml} />
+        </article>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .blog-page {
+    /* Uses .page-container from layout-shell.css */
+  }
+
+  .blog-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .blog-page :global(.card) {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .blog-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-stack-sm);
+    position: sticky;
+    min-width: 0;
+    top: calc(var(--header-height) + var(--space-stack-sm));
+  }
+
+  .blog-item {
+    cursor: pointer;
+    min-height: 44px;
+    padding: 0.75rem;
+    text-align: left;
+    transition: background var(--motion-duration-sm) var(--motion-ease-smooth);
+  }
+
+  .blog-item:hover {
+    background: var(--shell-elevated-card-bg);
+  }
+
+  .blog-item:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .blog-item.active {
+    background: var(--shell-elevated-card-bg);
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+
+  .blog-item-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    line-height: 1.4;
+  }
+
+  .blog-item-date {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+  }
+
+  .date-mask {
+    width: 2px;
+    height: 12px;
+    background: var(--surface-border);
+    border-radius: 1px;
+  }
+
+  .blog-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-stack-md);
+    min-width: 0;
+  }
+
+  #detail-title {
+    margin: 0 0 var(--space-stack-md) 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  #detail-content {
+    font-size: 1rem;
+    color: var(--text-body);
+    line-height: 1.6;
+  }
+
+  #detail-content :global(h2) {
+    margin: 1.5rem 0 0.75rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  #detail-content :global(h3) {
+    margin: 1.25rem 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  #detail-content :global(p) {
+    margin: 0.75rem 0;
+  }
+
+  #detail-content :global(pre) {
+    background: var(--shell-elevated-surface-bg);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+  }
+
+  #detail-content :global(code) {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.875rem;
+  }
+
+  #detail-content :global(blockquote) {
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid var(--link-accent);
+    background: var(--shell-elevated-surface-bg);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  #detail-content :global(blockquote p) {
+    margin: 0;
+    color: var(--text-body);
+  }
+
+  @media (max-width: 767px) {
+    .blog-container {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .blog-list {
+      position: static;
+      align-items: stretch;
+    }
+  }
+</style>
+
+<script>
+  import { renderMarkdown } from '../lib/utils/markdown';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const blogList = document.getElementById('blog-list');
+    const detailTitle = document.getElementById('detail-title');
+    const detailContent = document.getElementById('detail-content');
+
+    if (!blogList || !detailTitle || !detailContent) return;
+
+    const items = blogList.querySelectorAll('.blog-item');
+
+    items.forEach((item) => {
+      item.addEventListener('click', () => {
+        items.forEach((i) => i.classList.remove('active'));
+
+        item.classList.add('active');
+
+        const el = item as HTMLElement;
+        const title = el.dataset.title;
+        const content = el.dataset.content;
+        const baseUrl = el.dataset.baseUrl;
+
+        if (title) detailTitle.textContent = title;
+        if (content) detailContent.innerHTML = renderMarkdown(content, baseUrl ? { fileURL: baseUrl } : undefined);
+      });
+
+      item.addEventListener('keydown', (e) => {
+        const event = e as KeyboardEvent;
+        const el = item as HTMLElement;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          el.click();
+        }
+      });
+    });
+  });
+</script>

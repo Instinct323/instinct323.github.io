@@ -1,3 +1,5 @@
+tmp*
+
 # Local orchestration notes and verification artifacts
 .sisyphus/
 .DS_Store

@@ -84,6 +84,18 @@ body {
   box-sizing: border-box;
 }
 
+.page-container {
+  flex: 1;
+  padding: var(--space-section-y) 0;
+  position: relative;
+}
+
+@media (max-width: 767px) {
+  .page-container {
+    padding: var(--space-stack-lg) 0;
+  }
+}
+
 .site-eyebrow {
   margin: 0 0 0.5rem;
   font-size: var(--font-size-xs);

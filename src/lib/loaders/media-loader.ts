@@ -1,16 +1,15 @@
 import { loadMediaConfig } from './config-loader';
-import { assertPositiveInteger } from './assertions';
+import { ABOUT_AVATAR_SIZES } from './content-paths';
+import { buildGridSizesString, MOBILE_BREAKPOINT } from '../utils/grid-width-utils';
 import type {
   ContentImage,
   ContentImageOptions,
-  ContentImageSurface,
   FeaturedSlide,
   MediaConfig,
   MediaImage,
   MediaTree,
-} from './content-types';
+} from '../../types';
 import {
-  MOBILE_BREAKPOINT,
   HOME_COVERFLOW_SIZES,
   IMAGE_MEDIUM_WIDTHS_KEY,
   assertMediaConfigShape,
@@ -24,8 +23,8 @@ import {
 
 let mediaConfigCache: MediaConfig | null = null;
 let mediaConfigPromise: Promise<MediaConfig> | null = null;
-const ABOUT_AVATAR_SIZES = `(max-width: ${MOBILE_BREAKPOINT}px) 180px, 220px`;
-const ABOUT_AVATAR_INFERRED_WIDTHS = [180, 220];
+const ABOUT_AVATAR_SIZES_STRING = `(max-width: ${MOBILE_BREAKPOINT}px) ${ABOUT_AVATAR_SIZES[0]}px, ${ABOUT_AVATAR_SIZES[1]}px`;
+const ABOUT_AVATAR_INFERRED_WIDTHS = [...ABOUT_AVATAR_SIZES];
 
 interface SurfaceSizingProfile {
   inferredWidths: number[];
@@ -34,12 +33,12 @@ interface SurfaceSizingProfile {
 
 function resolveMediumSurfaceProfile(
   mediaConfig: MediaConfig,
-  surface: Exclude<ContentImageSurface, 'homepage'>,
+  surface: string,
 ): SurfaceSizingProfile {
   if (surface === 'about') {
     return {
       inferredWidths: ABOUT_AVATAR_INFERRED_WIDTHS,
-      sizes: ABOUT_AVATAR_SIZES,
+      sizes: ABOUT_AVATAR_SIZES_STRING,
     };
   }
 
@@ -75,7 +74,7 @@ async function getMediaConfigCached(): Promise<MediaConfig> {
 
 async function deriveContentImageOptionsFromConfig(
   mediaConfig: MediaConfig,
-  surface: ContentImageSurface,
+  surface: string,
   overrides: Partial<ContentImageOptions>
 ): Promise<ContentImageOptions> {
   const globalImage = mediaConfig.image;
@@ -83,11 +82,11 @@ async function deriveContentImageOptionsFromConfig(
     format: globalImage.format,
     quality: globalImage.quality,
   };
-  const homepageGalleryConfig = surface === 'homepage'
+  const homepageGalleryConfig = surface === 'home'
     ? await getValidatedHomepageGalleryConfig(getMediaConfigCached)
     : null;
 
-  const base: ContentImageOptions = surface === 'homepage'
+  const base: ContentImageOptions = surface === 'home'
     ? {
         ...common,
         widths: homepageGalleryConfig?.image.widths,
@@ -107,7 +106,7 @@ async function deriveContentImageOptionsFromConfig(
 
 function buildMediumSurfaceOptions(
   mediaConfig: MediaConfig,
-  surface: Exclude<ContentImageSurface, 'homepage'>,
+  surface: string,
   common: Pick<ContentImageOptions, 'format' | 'quality'>,
 ): ContentImageOptions {
   const profile = resolveMediumSurfaceProfile(mediaConfig, surface);
@@ -125,26 +124,11 @@ function buildMediumSurfaceOptions(
 }
 
 function buildGallerySizes(grid: MediaConfig['grid']): string {
-  const mobileColumns = assertPositiveInteger(
-    grid.columns.mobile,
-    'photography.grid.columns.mobile',
-  );
-  const desktopColumns = assertPositiveInteger(
-    grid.columns.desktop,
-    'photography.grid.columns.desktop',
-  );
-
-  const mobileWidth = (100 / mobileColumns).toFixed(2);
-  const desktopWidth = (100 / desktopColumns).toFixed(2);
-
-  return [
-    `(max-width: ${MOBILE_BREAKPOINT}px) ${mobileWidth}vw`,
-    `${desktopWidth}vw`,
-  ].join(', ');
+  return buildGridSizesString(grid);
 }
 
 export async function deriveContentImageOptions(
-  surface: ContentImageSurface,
+  surface: string,
   overrides: Partial<ContentImageOptions>
 ): Promise<ContentImageOptions> {
   const mediaConfig = await getMediaConfigCached();
@@ -158,7 +142,7 @@ export async function loadContentImage(path: string, options: ContentImageOption
 
 export async function loadFeaturedSlides(): Promise<FeaturedSlide[]> {
   const homepageGalleryConfig = await getValidatedHomepageGalleryConfig(getMediaConfigCached);
-  const homeImageOptions = await deriveContentImageOptions('homepage', {});
+  const homeImageOptions = await deriveContentImageOptions('home', {});
 
   return loadFeaturedSlidesForHomepage(homepageGalleryConfig.featured, homeImageOptions, loadContentImage);
 }
@@ -183,7 +167,7 @@ function mapGalleryImage(path: string, options: ContentImageOptions): MediaImage
 
 export async function loadMediaTree(): Promise<MediaTree> {
   const mediaConfig = await getMediaConfigCached();
-  const galleryImageOptions = await deriveContentImageOptionsFromConfig(mediaConfig, 'gallery', {});
+  const galleryImageOptions = await deriveContentImageOptionsFromConfig(mediaConfig, 'photography', {});
 
   return loadMediaTreeFromGallery(mediaConfig.grid, galleryImageOptions, mapGalleryImage);
 }

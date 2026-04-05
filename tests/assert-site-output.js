@@ -83,12 +83,16 @@ function assertCarouselHooks(homeHtml, _carouselConfig) {
   assertHasTestId(homeHtml, 'carousel-viewport');
 }
 
-function assertPrimaryNavOrder(routeHtml, route) {
-  const expectedNavItems = [
-    { key: 'home', href: '/' },
-    { key: 'about', href: '/about/' },
-    { key: 'photography', href: '/photography/' },
-  ];
+function assertPrimaryNavOrder(routeHtml, route, cfg) {
+  const navOrder = cfg.navigation.order;
+  const expectedNavItems = navOrder.map((key) => {
+    const hrefMap = {
+      home: '/',
+      about: '/about/',
+      photography: '/photography/',
+    };
+    return { key, href: hrefMap[key] };
+  });
 
   let prevIndex = -1;
   for (const item of expectedNavItems) {
@@ -102,22 +106,6 @@ function assertPrimaryNavOrder(routeHtml, route) {
   }
 }
 
-function collectHomeCtaClusterWarnings(homeHtml, cfg, warnings) {
-  // Contract: redundant homepage CTA cluster means hero-level route links duplicate sticky header navigation.
-  const hasClusterContainer = /\bdata-testid=(['"])home-route-links\1/i.test(homeHtml);
-  const duplicatedKeys = cfg.home.pageLinks.order.filter((key) => {
-    const linkPattern = new RegExp(`\\bdata-testid=(['"])home-link-${escapeRegExp(key)}\\1`, 'i');
-    return linkPattern.test(homeHtml);
-  });
-
-  if (hasClusterContainer || duplicatedKeys.length > 0) {
-    warnings.push({
-      code: 'home-cta-cluster-present',
-      route: '/',
-      detail: `home-route-links found=${hasClusterContainer}; duplicated links=${duplicatedKeys.join(',') || 'none'}`,
-    });
-  }
-}
 
 function assertShellStyleOutput(routeHtml, route, shellName) {
   assert.match(routeHtml, new RegExp(`<body\\b[^>]*\\bdata-shell=(['"])${escapeRegExp(shellName)}\\1`, 'i'), `Route ${route} body should expose shell name ${shellName}`);
@@ -133,7 +121,6 @@ function assertShellStyleOutput(routeHtml, route, shellName) {
 
 function assertPhotographyPageCompleteness(photographyHtml) {
   assertHasTestId(photographyHtml, 'photography-sticky-nav');
-  assertHasTestId(photographyHtml, 'photography-page-description');
 
   const navChipPattern = /\bdata-testid=(['"])photography-chip-[^'"]+\1/gi;
   const matches = photographyHtml.match(navChipPattern) ?? [];
@@ -178,13 +165,9 @@ function main() {
 
   assertHasTestId(homeHtml, 'home-editorial-hero');
 
-  assertHasTestId(photographyHtml, 'photography-hero');
-  assertHasTestId(photographyHtml, 'photography-page-title');
-
-  collectHomeCtaClusterWarnings(homeHtml, cfg, warnings);
-  assertPrimaryNavOrder(homeHtml, '/');
-  assertPrimaryNavOrder(aboutHtml, '/about/');
-  assertPrimaryNavOrder(photographyHtml, '/photography/');
+  assertPrimaryNavOrder(homeHtml, '/', cfg);
+  assertPrimaryNavOrder(aboutHtml, '/about/', cfg);
+  assertPrimaryNavOrder(photographyHtml, '/photography/', cfg);
 
   assertShellStyleOutput(homeHtml, '/', 'home');
   assertShellStyleOutput(aboutHtml, '/about/', 'about');

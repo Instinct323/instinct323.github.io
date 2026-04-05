@@ -4,8 +4,8 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-coverflow';
 import DeferredImage from '../common/DeferredImage.astro';
-import type { FeaturedSlide, HomepageConfig } from '../../lib/content-loader';
-import { resolveControlImageLoading } from '../../lib/page-load-orchestrator';
+import type { FeaturedSlide, HomepageConfig } from '../../lib/loaders/content-loader';
+import { resolveControlImageLoading } from '../../lib/loaders/page-load-orchestrator';
 
 // Contract: Render the full featured-media carousel region used on the home page,
 // including slide markup, controls, and client bootstrap hooks.
@@ -129,96 +129,16 @@ const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
 )}
 
 {hasSlides && <script>
-  import {
-    buildDeferredMountBootstrapOptions,
-    initDeferredMountGroupSafely,
-  } from '../../lib/deferred-mount-page';
-
-  initDeferredMountGroupSafely(
-    buildDeferredMountBootstrapOptions(
-      '.home-carousel[data-carousel-lazy-config]',
-      'carouselLazyConfig',
-      'home-carousel-image',
-    ),
-    'home carousel',
-  );
+  import { initHomeCarouselDeferredMounts } from '../../lib/runtime/deferred-mount-carousel';
+  initHomeCarouselDeferredMounts();
 </script>}
 
 {hasMultiSlides && <script>
-  import { runWhenIdle } from '../../lib/scheduling';
+  import { initCarouselWithPrewarm } from '../../lib/runtime/carousel-init';
 
   const carouselRoot = document.querySelector('.home-carousel');
-
   if (carouselRoot instanceof HTMLElement) {
-    // Keep one shared import promise so pointer/focus/viewport triggers never double-init.
-    let initPromise: Promise<void> | null = null;
-    let carouselModulePromise: Promise<typeof import('../../lib/carousel')> | null = null;
-
-    const prewarmCarouselModule = () => {
-      if (!carouselModulePromise) {
-        carouselModulePromise = import('../../lib/carousel');
-      }
-
-      return carouselModulePromise;
-    };
-
-    const initCarousel = () => {
-      if (!initPromise) {
-        initPromise = prewarmCarouselModule().then((mod) => {
-          mod.registerFeaturedMediaCarouselReducedMotion();
-          mod.initFeaturedMediaCarousels();
-        });
-      }
-
-      return initPromise;
-    };
-
-    // Prewarm carousel module during idle time or early user intent.
-    runWhenIdle(() => {
-      void prewarmCarouselModule();
-    }, {
-      timeout: 1200,
-      fallbackDelayMs: 250,
-    });
-
-    const prewarmOnIntent = () => {
-      void prewarmCarouselModule();
-    };
-
-    carouselRoot.addEventListener('pointermove', prewarmOnIntent, { once: true, passive: true });
-    carouselRoot.addEventListener('touchstart', prewarmOnIntent, { once: true, passive: true });
-
-    // Intent-based eager load keeps controls responsive when users hover/focus before intersecting.
-    const eagerLoad = () => {
-      cleanup();
-      void initCarousel();
-    };
-
-    const cleanup = () => {
-      carouselRoot.removeEventListener('pointerenter', eagerLoad);
-      carouselRoot.removeEventListener('focusin', eagerLoad);
-    };
-
-    carouselRoot.addEventListener('pointerenter', eagerLoad, { once: true, passive: true });
-    carouselRoot.addEventListener('focusin', eagerLoad, { once: true });
-
-    // Viewport-based lazy init remains the primary path, with idle-time preference on capable browsers.
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) {
-          return;
-        }
-
-        observer.disconnect();
-
-        // Initialize immediately for faster response; idle-time preference removed.
-        void initCarousel();
-      }, { rootMargin: '100px 0px' });
-
-      observer.observe(carouselRoot);
-    } else {
-      void initCarousel();
-    }
+    initCarouselWithPrewarm(carouselRoot);
   }
 </script>}
 
@@ -262,7 +182,7 @@ const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 10;
-    border-radius: 20px;
+    border-radius: var(--carousel-border-radius);
     overflow: hidden;
     background: var(--image-load-placeholder-bg);
     box-shadow:
@@ -418,9 +338,9 @@ const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 280px;
+    height: var(--carousel-height-empty);
     background: var(--image-load-empty-bg);
-    border-radius: 20px;
+    border-radius: var(--carousel-border-radius);
     border: 1px dashed var(--image-load-empty-border);
     color: var(--image-load-empty-text);
   }

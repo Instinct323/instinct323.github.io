@@ -1,34 +1,35 @@
 ---
 import { getImage } from 'astro:assets';
-import { backgroundDesktopSource, backgroundMobileSource } from '../lib/paths';
+import { backgroundDesktopSource, backgroundMobileSource } from '../lib/loaders/content-paths';
 import LayoutHead from '../components/layout/LayoutHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { loadEffectsConfig, loadMediaConfig, loadSiteMetadata } from '../lib/config-loader';
-import { buildShellStyle, type LayoutProps } from '../lib/layout-shell';
+import Footer from '../components/layout/Footer.astro';
+import Header from '../components/layout/Header.astro';
+import { loadEffectsConfig, loadMediaConfig, loadSiteMetadata } from '../lib/loaders/config-loader';
+import { buildShellStyle, type LayoutProps } from '../lib/domain/layout-shell';
 import {
-  IMAGE_HIGH_WIDTHS_KEY,
   RESPONSIVE_VIEWPORT_WIDTHS,
   assertMediaConfigShape,
-  selectCandidateWidthsByPolicy,
-} from '../lib/media-loader-core';
-import { orchestratePageLoad } from '../lib/page-load-orchestrator';
+} from '../lib/loaders/media-loader-core';
+import { orchestratePageLoad } from '../lib/loaders/page-load-orchestrator';
+import {
+  LAYOUT_MOBILE_HEIGHT,
+  LAYOUT_DESKTOP_HEIGHT,
+  selectBackgroundWidth,
+  inferCoverWidth,
+} from '../lib/utils/layout-utils';
+import { assertString } from '../lib/utils/assertions';
 import '../styles/layout-shell.css';
 import '../styles/tokens.css';
 
 const {
-  pageKey,
   title,
   description,
   type = 'website',
   noindex = false,
   shell = 'default',
-  overlayVariant,
   contentWidth = 'standard',
 } = Astro.props as LayoutProps;
 
-const MOBILE_VIEWPORT_HEIGHT = 812;
-const DESKTOP_VIEWPORT_HEIGHT = 900;
 const BACKGROUND_MOBILE_ASPECT_RATIO = backgroundMobileSource.width / backgroundMobileSource.height;
 const BACKGROUND_DESKTOP_ASPECT_RATIO = backgroundDesktopSource.width / backgroundDesktopSource.height;
 
@@ -41,40 +42,14 @@ interface BackgroundVariantInput {
   aspectRatio: number;
 }
 
-function selectBackgroundWidth(
-  candidateWidths: number[],
-  inferredWidth: number,
-  dprScale: number,
-  keySuffix: string,
-  sourceMaxWidth: number,
-): number {
-  return selectCandidateWidthsByPolicy({
-    candidateWidths,
-    inferredWidths: [inferredWidth],
-    dprScale,
-    key: `${IMAGE_HIGH_WIDTHS_KEY}.${keySuffix}`,
-    maxSelectableWidth: sourceMaxWidth,
-  })[0];
-}
-
-function inferCoverWidth(
-  viewportWidth: number,
-  viewportHeight: number,
-  imageAspectRatio: number,
-): number {
-  const viewportAspectRatio = viewportWidth / viewportHeight;
-  const cropExpansion = Math.max(1, imageAspectRatio / viewportAspectRatio);
-  return Math.ceil(viewportWidth * cropExpansion);
-}
-
 const mobileInferredWidth = inferCoverWidth(
   RESPONSIVE_VIEWPORT_WIDTHS.mobile,
-  MOBILE_VIEWPORT_HEIGHT,
+  LAYOUT_MOBILE_HEIGHT,
   BACKGROUND_MOBILE_ASPECT_RATIO,
 );
 const desktopInferredWidth = inferCoverWidth(
   RESPONSIVE_VIEWPORT_WIDTHS.desktop,
-  DESKTOP_VIEWPORT_HEIGHT,
+  LAYOUT_DESKTOP_HEIGHT,
   BACKGROUND_DESKTOP_ASPECT_RATIO,
 );
 
@@ -163,20 +138,25 @@ const {
   effectsConfig,
 } = layoutLoad.frame;
 const { backgroundMobile, backgroundDesktop } = layoutLoad.background;
-const siteUrl = Astro.site ?? new URL(siteMetadata.siteUrl);
+
+// Fail-fast: Astro.site must be configured in astro.config.ts
+if (!Astro.site) {
+  throw new Error('Astro.site is not configured. Please set site in astro.config.ts.');
+}
+const siteUrl = Astro.site;
 
 const shellBackgroundPayload = JSON.stringify({
   mobileSrc: backgroundMobile.src,
   desktopSrc: backgroundDesktop.src,
 });
 
-const pageMetadata = pageKey ? siteMetadata.pages[pageKey] : undefined;
-const resolvedTitle = title ?? pageMetadata?.title ?? siteMetadata.defaultTitle;
-const resolvedDescription = description ?? pageMetadata?.description ?? siteMetadata.defaultDescription;
+// Fail-fast: title and description should be provided by pages or site config
+const resolvedTitle = title !== undefined ? title : assertString(siteMetadata.defaultTitle, 'siteMetadata.defaultTitle');
+const resolvedDescription = description !== undefined ? description : assertString(siteMetadata.defaultDescription, 'siteMetadata.defaultDescription');
 
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 const sitemapUrl = new URL('/sitemap-index.xml', siteUrl).toString();
-const shellStyle = buildShellStyle(shell, overlayVariant, contentWidth);
+const shellStyle = buildShellStyle(shell, contentWidth);
 const starfieldConfig = effectsConfig.starfield;
 ---
 
@@ -212,122 +192,9 @@ const starfieldConfig = effectsConfig.starfield;
       <Footer />
     </main>
     <script>
-      import { initStarfield } from '../lib/starfield-runtime';
-      import { runWhenIdle } from '../lib/scheduling';
+      import { initLayout } from '../lib/runtime/layout-runtime';
 
-      const backgroundCanvas = document.querySelector<HTMLCanvasElement>('.site-stars-background');
-      const starsCanvas = document.querySelector<HTMLCanvasElement>('.site-stars');
-      const siteFrame = document.querySelector<HTMLElement>('.site-frame[data-shell-background]');
-      const SHELL_BACKGROUND_CACHE_KEY = 'site-shell-background-payload-v1';
-
-      interface ShellBackgroundPayload {
-        mobileSrc: string;
-        desktopSrc: string;
-      }
-
-      const parseShellBackgroundPayload = (): {
-        payload: ShellBackgroundPayload;
-        serializedPayload: string;
-      } | null => {
-        if (!siteFrame) {
-          return null;
-        }
-
-        const serializedPayload = siteFrame.dataset.shellBackground;
-        if (!serializedPayload) {
-          throw new Error('Missing data-shell-background payload');
-        }
-
-        const payload = JSON.parse(serializedPayload) as {
-          mobileSrc?: string;
-          desktopSrc?: string;
-        };
-
-        if (!payload.mobileSrc || !payload.desktopSrc) {
-          throw new Error('Invalid shell background payload');
-        }
-
-        return {
-          payload: {
-            mobileSrc: payload.mobileSrc,
-            desktopSrc: payload.desktopSrc,
-          },
-          serializedPayload,
-        };
-      };
-
-      const applyShellBackgroundImages = (payload: ShellBackgroundPayload) => {
-        document.body.style.setProperty('--page-bg-image-mobile', `url('${payload.mobileSrc}')`);
-        document.body.style.setProperty('--page-bg-image-desktop', `url('${payload.desktopSrc}')`);
-      };
-
-      const applyShellBackgroundImagesWithCache = () => {
-        try {
-          const parsed = parseShellBackgroundPayload();
-          if (!parsed) {
-            return;
-          }
-
-          applyShellBackgroundImages(parsed.payload);
-
-          try {
-            window.sessionStorage.setItem(SHELL_BACKGROUND_CACHE_KEY, parsed.serializedPayload);
-          } catch {
-            // Ignore storage failures in privacy mode or restricted contexts.
-          }
-        } catch (e) {
-          console.error('Failed to apply shell background images:', e);
-        }
-      };
-
-      const applyShellBackgroundImagesFromSessionCache = (): boolean => {
-        try {
-          const parsed = parseShellBackgroundPayload();
-          if (!parsed) {
-            return true;
-          }
-
-          const cachedPayload = window.sessionStorage.getItem(SHELL_BACKGROUND_CACHE_KEY);
-          if (cachedPayload !== parsed.serializedPayload) {
-            return false;
-          }
-
-          applyShellBackgroundImages(parsed.payload);
-          return true;
-        } catch {
-          return false;
-        }
-      };
-
-      const scheduleShellBackgroundApply = () => {
-        runWhenIdle(() => {
-          applyShellBackgroundImagesWithCache();
-        }, {
-          timeout: 2000,
-          fallbackDelayMs: 180,
-        });
-      };
-
-      if (!applyShellBackgroundImagesFromSessionCache()) {
-        if (document.readyState === 'complete') {
-          scheduleShellBackgroundApply();
-        } else {
-          window.addEventListener('load', scheduleShellBackgroundApply, { once: true });
-        }
-      }
-
-      if (backgroundCanvas && starsCanvas) {
-        try {
-          const serializedConfig = starsCanvas.dataset.starfield;
-          if (!serializedConfig) {
-            throw new Error('Missing data-starfield payload');
-          }
-          const config = JSON.parse(serializedConfig);
-          initStarfield(backgroundCanvas, starsCanvas, config);
-        } catch (e) {
-          console.error('Failed to initialize starfield:', e);
-        }
-      }
+      initLayout();
     </script>
   </body>
 </html>

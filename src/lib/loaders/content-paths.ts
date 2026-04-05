@@ -5,6 +5,9 @@ export const ABOUT_DIR = `${CONTENT_ROOT}/about`;
 export const BACKGROUND_DIR = `${CONTENT_ROOT}/background`;
 export const PHOTOGRAPHY_DIR = `${CONTENT_ROOT}/photography`;
 export const PUBLICATION_DIR = `${ABOUT_DIR}/publication`;
+// NOTE: Hardcoded in media-loader-core.ts because Vite import.meta.glob requires string literals
+// CONTENT_IMAGES_GLOB: '../../../content/**/*.{jpg,jpeg,png,webp}'
+// PUBLICATION_GLOB: '../../../content/about/publication/*.json'
 
 // Config files
 export const CONFIG_FILE = `${CONTENT_ROOT}/config.jsonc`;
@@ -23,8 +26,9 @@ export const DESKTOP_BG_JPG = `${BACKGROUND_DIR}/desktop.jpg`;
 export const MOBILE_BG_JPG = `${BACKGROUND_DIR}/mobile.jpg`;
 
 // Re-exported modules
-export { default as introductionRaw } from '../../content/about/introduction.md?raw';
-export { default as profile } from '../../content/about/profile.json';
-export { default as siteConfigRaw } from '../../content/config.jsonc?raw';
-export { default as backgroundDesktopSource } from '../../content/background/desktop.jpg';
-export { default as backgroundMobileSource } from '../../content/background/mobile.jpg';
+export { default as introductionRaw } from '../../../content/about/introduction.md?raw';
+export { default as profile } from '../../../content/about/profile.json';
+export { default as siteConfigRaw } from '../../../content/config.jsonc?raw';
+export { default as backgroundDesktopSource } from '../../../content/background/desktop.jpg';
+export { default as backgroundMobileSource } from '../../../content/background/mobile.jpg';
+export const ABOUT_AVATAR_SIZES = [180, 220] as const;

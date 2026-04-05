@@ -1,11 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import EditorialHero from '../components/home/EditorialHero.astro';
-import SupportRow from '../components/home/SupportRow.astro';
 import FeaturedMediaCarousel from '../components/home/FeaturedMediaCarousel.astro';
-import { loadFeaturedSlides, loadHomePage } from '../lib/content-loader';
-import { buildDeferredMountRuntimePayload } from '../lib/deferred-mount-page';
-import { orchestratePageLoad } from '../lib/page-load-orchestrator';
+import { loadFeaturedSlides, loadHomePage } from '../lib/loaders/content-loader';
+import { buildDeferredMountRuntimePayload } from '../lib/runtime/deferred-mount-page';
+import { orchestratePageLoad } from '../lib/loaders/page-load-orchestrator';
 
 const homeLoad = await orchestratePageLoad({
   frame: () => loadHomePage(),
@@ -20,13 +19,11 @@ const placeholderEffectName = site.image.placeholderEffect;
 const hasSlides = featuredSlides.length > 0;
 const homepageConfig = site.home;
 const layoutCfg = homepageConfig.layout;
-const supportText = homepageConfig.support.text?.trim() ?? '';
 const sections = layoutCfg.sectionOrder;
 ---
 
 <Layout
-  pageKey="home"
-  shell={layoutCfg.shell}
+  shell="home"
   contentWidth={layoutCfg.contentWidth}
 >
   <section class="home-page">
@@ -66,8 +63,6 @@ const sections = layoutCfg.sectionOrder;
         return null;
       })}
     </div>
-
-    {supportText && <div class="support-section"><SupportRow text={supportText} /></div>}
   </section>
 </Layout>
 
@@ -158,13 +153,6 @@ const sections = layoutCfg.sectionOrder;
     min-height: 0;
     display: flex;
     align-items: center;
-  }
-
-  .support-section {
-    position: relative;
-    z-index: 1;
-    grid-row: 3;
-    padding-bottom: var(--space-section-md);
   }
 
   /* Desktop: Refined proportions */

@@ -13,12 +13,14 @@ pnpm dev
 
 ```text
 ├── content/                  # Site content and config files
+│   └── blog/*/               # Blog posts (README.md + assets)
 ├── src/
 │   ├── components/           # Astro UI components
 │   ├── layouts/              # Shared layout shell
 │   ├── lib/                  # Config/content/media loaders
-│   │   └── paths.ts          # Centralized resource path definitions
-│   ├── pages/                # Route entry pages
+│   │   ├── content-paths.ts  # Centralized resource path definitions
+│   │   └── loaders/          # Content loaders (blog, photos, etc.)
+│   ├── pages/                # Route entry pages (index, blog, photos, about)
 │   └── styles/               # Global tokens and shared styles
 ├── tests/
 └── package.json

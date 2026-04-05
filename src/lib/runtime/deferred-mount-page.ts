@@ -1,7 +1,7 @@
-import type { SiteImageConfig } from './content-types';
+import type { SiteImageConfig } from '../../types';
 import type { DeferredMountBootstrapOptions } from './deferred-mount-bootstrap';
 import { bootstrapDeferredMounts } from './deferred-mount-bootstrap';
-import { resolveDeferredMountRuntimeConfig } from './page-load-orchestrator';
+import { resolveDeferredMountRuntimeConfig } from '../loaders/page-load-orchestrator';
 
 export function buildDeferredMountRuntimePayload(
   lazyLoad: SiteImageConfig['lazyLoad'],

@@ -5,8 +5,8 @@
 import { Image } from 'astro:assets';
 import DeferredImage from '../common/DeferredImage.astro';
 
-import type { MediaImage } from '../../lib/content-loader';
-import { resolveControlImageLoading } from '../../lib/page-load-orchestrator';
+import type { MediaImage } from '../../lib/loaders/content-loader';
+import { resolveControlImageLoading } from '../../lib/loaders/page-load-orchestrator';
 
 interface Props {
   image: MediaImage;

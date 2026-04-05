@@ -1,19 +1,6 @@
-import type { SitePageKey } from './content-types';
+import type { LayoutProps } from '../../types/page';
 
-export type ShellVariant = 'default' | 'home' | 'about' | 'photography';
-export type OverlayVariant = 'hero' | 'soft' | 'gallery';
-export type ContentWidth = 'compact' | 'standard' | 'wide';
-
-export interface LayoutProps {
-  pageKey?: SitePageKey;
-  title?: string;
-  description?: string;
-  type?: 'website' | 'article';
-  noindex?: boolean;
-  shell?: ShellVariant;
-  overlayVariant?: OverlayVariant;
-  contentWidth?: ContentWidth | string;
-}
+export type { LayoutProps };
 
 interface ShellTokenConfig {
   overlayAccentPrimary: string;
@@ -39,14 +26,7 @@ const ELEVATED_SHELL_TOKENS: ShellTokenConfig = {
   textMuted: 'var(--shell-home-text-muted)',
 };
 
-const SHELL_OVERLAY_DEFAULTS: Record<ShellVariant, OverlayVariant> = {
-  default: 'soft',
-  home: 'hero',
-  about: 'hero',
-  photography: 'hero',
-};
-
-const shellTokens: Partial<Record<ShellVariant, ShellTokenConfig>> = {
+const shellTokens: Partial<Record<string, ShellTokenConfig>> = {
   home: ELEVATED_SHELL_TOKENS,
   about: ELEVATED_SHELL_TOKENS,
   photography: {
@@ -57,38 +37,31 @@ const shellTokens: Partial<Record<ShellVariant, ShellTokenConfig>> = {
   },
 };
 
-const overlayTokens: Record<OverlayVariant, string> = {
-  hero: 'var(--overlay-hero)',
-  soft: 'var(--overlay-soft)',
-  gallery: 'var(--overlay-gallery)',
-};
-
-const contentWidthTokens: Record<ContentWidth, string> = {
+const contentWidthTokens: Record<string, string> = {
   compact: 'var(--page-width-compact)',
   standard: 'var(--page-width-standard)',
   wide: 'var(--page-width-wide)',
 };
 
-function resolveContentWidth(contentWidth: ContentWidth | string): string {
+function resolveContentWidth(contentWidth: string): string {
   if (contentWidth in contentWidthTokens) {
-    return contentWidthTokens[contentWidth as ContentWidth];
+    return contentWidthTokens[contentWidth];
   }
 
   return contentWidth;
 }
 
+const PAGE_OVERLAY = 'var(--page-overlay)';
+
 export function buildShellStyle(
-  shell: ShellVariant,
-  overlayVariant: OverlayVariant | undefined,
-  contentWidth: ContentWidth | string,
+  shell: string,
+  contentWidth: string,
 ): string {
   const shellConfig = shellTokens[shell];
-  const shellOverlayVariant = overlayVariant ?? SHELL_OVERLAY_DEFAULTS[shell];
-  const pageOverlay = overlayTokens[shellOverlayVariant];
   const layoutContentWidth = resolveContentWidth(contentWidth);
 
   const shellStyleTokens: Record<string, string> = {
-    '--page-overlay': pageOverlay,
+    '--page-overlay': PAGE_OVERLAY,
     '--layout-content-width': layoutContentWidth,
   };
 

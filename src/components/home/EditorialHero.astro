@@ -1,5 +1,5 @@
 ---
-import type { Home, HomepageConfig, ResolvedProfileData } from '../../lib/content-loader';
+import type { Home, HomepageConfig, ResolvedProfileData } from '../../lib/loaders/content-loader';
 
 // Contract: Render the identity-focused hero copy block on the home page,
 // combining profile metadata with home-specific editorial text.
@@ -48,9 +48,11 @@ const deckItems = settings.deckFields.flatMap((field) => {
         <span class:list={[item.className]}>{item.value}</span>,
       ])}
     </p>
-    <div class="hero-actions">
-      <slot />
-    </div>
+    {Astro.slots.has('default') && (
+      <div class="hero-actions">
+        <slot />
+      </div>
+    )}
   </div>
 </section>
 
@@ -98,13 +100,13 @@ const deckItems = settings.deckFields.flatMap((field) => {
   }
 
   .deck-divider {
-    width: 3px;
-    height: 3px;
+    width: var(--deck-divider-size, 3px);
+    height: var(--deck-divider-size, 3px);
     border-radius: 50%;
     background: rgba(147, 197, 253, 0.6);
   }
 
-  .hero-actions {
+  .hero-actions:not(:empty) {
     margin-top: var(--space-stack-sm);
     width: 100%;
     display: flex;
@@ -141,7 +143,7 @@ const deckItems = settings.deckFields.flatMap((field) => {
       line-height: 1.6;
     }
 
-    .hero-actions {
+    .hero-actions:not(:empty) {
       margin-top: 0;
     }
   }

@@ -2,8 +2,8 @@
 // PublicationsSection.astro - Academic publications display
 // Shows list of publications with title, authors, date, and links
 
-import type { Publication } from '../../lib/content-types';
-import { resolvePublicationLinks } from '../../lib/publication-utils';
+import type { Publication } from '../../types';
+import { resolvePublicationLinks } from '../../lib/domain/publication-utils';
 
 interface Props {
   publications: Publication[];
@@ -155,7 +155,7 @@ const { publications, highlightAuthor } = Astro.props as Props;
   }
 
   .publication-abstract-toggle {
-    color: #3a2711;
+    color: var(--pub-abstract-toggle-color, #3a2711);
     background: rgba(218, 165, 32, 0.2);
     border-color: rgba(184, 134, 11, 0.34);
   }
@@ -198,31 +198,7 @@ const { publications, highlightAuthor } = Astro.props as Props;
   }
 </style>
 
-<script is:inline>
-  const abstractToggles = document.querySelectorAll('[data-abstract-toggle]');
-
-  abstractToggles.forEach((toggle) => {
-    toggle.addEventListener('click', () => {
-      const targetId = toggle.getAttribute('data-target');
-      if (!targetId) {
-        return;
-      }
-
-      const panel = document.getElementById(targetId);
-      if (!panel) {
-        return;
-      }
-
-      const isCollapsed = panel.hasAttribute('hidden');
-      if (isCollapsed) {
-        panel.removeAttribute('hidden');
-        toggle.setAttribute('aria-expanded', 'true');
-        toggle.textContent = 'Hide abstract';
-      } else {
-        panel.setAttribute('hidden', '');
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.textContent = 'Abstract';
-      }
-    });
-  });
+<script>
+  import { initPublicationAbstractToggles } from '../../lib/domain/publication-abstract-toggle';
+  initPublicationAbstractToggles();
 </script>

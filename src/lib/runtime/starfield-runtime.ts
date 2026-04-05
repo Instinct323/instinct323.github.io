@@ -1,4 +1,4 @@
-import type { StarfieldEffectConfig } from './content-types';
+import type { StarfieldEffectConfig } from '../../types';
 
 const DPR_CAP = 2;
 const IDLE_RESTART_TIME = 1000;
@@ -178,15 +178,6 @@ export function initStarfield(
 
   function drawBackground(): void {
     ctxBg!.clearRect(0, 0, width, height);
-
-    if (config.canvasGradient && config.canvasGradient.length > 0) {
-      const gradient = ctxBg!.createLinearGradient(0, 0, width, height);
-      config.canvasGradient.forEach((color, index) => {
-        gradient.addColorStop(index / (config.canvasGradient!.length - 1), color);
-      });
-      ctxBg!.fillStyle = gradient;
-      ctxBg!.fillRect(0, 0, width, height);
-    }
   }
 
   function createStars(): void {

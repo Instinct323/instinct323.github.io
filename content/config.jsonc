@@ -3,33 +3,11 @@
   "metadata": {
     "siteUrl": "https://instinct323.github.io/",
     "defaultTitle": "instinct323.github.io",
-    "defaultDescription": "Personal website built with Astro.",
-    "pages": {
-      "home": {
-        "title": "Zanjia Tong | instinct323.github.io",
-        "description": "Personal website of Zanjia Tong featuring research, background, and photography collections."
-      },
-      "about": {
-        "title": "About | instinct323.github.io",
-        "description": "Academic background, publications, and profile of Zanjia Tong, M.Sc. student at SUSTech."
-      },
-      "photography": {
-        "title": "Photography | instinct323.github.io",
-        "description": "Photography portfolio by Zanjia Tong with travel, personal, and curated collection galleries."
-      }
-    }
+    "defaultDescription": "Personal website built with Astro."
   },
-  // Owned by IA/accessibility editors; consumed by header nav and home CTA link rendering.
+  // Owned by IA/accessibility editors; consumed by header nav.
   "navigation": {
-    "labels": {
-      "home": "Home",
-      "about": "About",
-      "photography": "Photography"
-    },
-    "ariaLabels": {
-      "primary": "Primary",
-      "homeLinks": "Page navigation"
-    }
+    "order": ["home", "about", "blog", "photography"]
   },
   // Owned by homepage editors; consumed by src/lib/content-loader.ts and home components.
   "home": {
@@ -39,7 +17,6 @@
     },
     // Owned by design/system editors; consumed by Layout and homepage section orchestration.
     "layout": {
-      "shell": "home",
       "contentWidth": "wide",
       "sectionOrder": [
         "hero",
@@ -54,14 +31,6 @@
         "organization"
       ],
       "showDeckDivider": true
-    },
-    // Owned by nav/content editors; consumed by homepage CTA ordering and emphasis logic.
-    "pageLinks": {
-      "order": [
-        "about",
-        "photography"
-      ],
-      "primaryKey": "about"
     },
     // Owned by media editors; consumed by homepage featured media loaders and carousel UI.
     "featuredMedia": {
@@ -93,10 +62,6 @@
           "inactiveOpacity": 1.0
         }
       }
-    },
-    // Owned by editorial team; consumed by bottom support row when helper copy is present.
-    "support": {
-      "text": ""
     }
   },
   // Owned by media pipeline maintainers; consumed as default derivative settings outside homepage featured media.
@@ -119,14 +84,8 @@
     // ref: https://codepen.io/AlexWarnes/pen/jXYYKL
     "placeholderEffect": "bars-height-wave"
   },
-  // Owned by photography page editors; consumed by photography route hero content.
+// Owned by photography page editors; consumed by photography gallery grid calculations.
   "photography": {
-    "hero": {
-      "eyebrow": "VIVO!",
-      "title": "Photography",
-      "description": "Maybe you’re also obsessed with the sky."
-    },
-    // Owned by gallery layout maintainers; consumed by photography gallery grid calculations.
     "grid": {
       "columns": {
         "desktop": 3,
@@ -153,8 +112,7 @@
       "rotationSpeed": { "min": 0.001, "max": 0.003 },
       "connectionsWhenNoMouse": false,
       "percentStarsConnecting": 30,
-      "lineThickness": 2,
-      "canvasGradient": null
+      "lineThickness": 2
     }
   }
 }

@@ -8,8 +8,9 @@ import {
   sanitizePositiveWidths,
   slugToTitle,
   stripNumericPrefix,
-} from './content-normalize';
-import { PHOTOGRAPHY_FILTER } from './paths';
+} from '../utils/content-normalize';
+import { deriveGridCellWidths, RESPONSIVE_VIEWPORT_WIDTHS as GRID_VIEWPORT_WIDTHS } from '../utils/grid-width-utils';
+import { PHOTOGRAPHY_FILTER } from './content-paths';
 import type {
   ContentImage,
   ContentImageOptions,
@@ -22,7 +23,7 @@ import type {
   MediaConfig,
   MediaImage,
   MediaTree,
-} from './content-types';
+} from '../../types';
 
 interface ParsedMediaPath {
   album?: string;
@@ -32,8 +33,10 @@ interface ParsedMediaPath {
 }
 
 // Image modules glob — filtered by PHOTOGRAPHY_FILTER at runtime
+// Using hardcoded path because Vite's import.meta.glob requires string literals
+// See CONTENT_IMAGES_GLOB constant in content-paths.ts for the canonical path
 export const CONTENT_IMAGE_MODULES = import.meta.glob<{ default: ImageMetadata }>(
-  '../../content/**/*.{jpg,jpeg,png,webp}',
+  '../../../content/**/*.{jpg,jpeg,png,webp}',
   { eager: true }
 );
 
@@ -41,7 +44,6 @@ const CONTENT_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp)$/i;
 
 
 export const RESPONSIVE_WIDTH_STEPS = [320, 480, 640, 768, 960, 1200, 1600, 2000, 2400];
-export const MOBILE_BREAKPOINT = 767;
 export const HOME_COVERFLOW_MOBILE_BREAKPOINT = 767;
 export const HOME_COVERFLOW_SIZES = `(max-width: ${HOME_COVERFLOW_MOBILE_BREAKPOINT}px) 480px, (max-width: 1024px) 640px, 768px`;
 export const RESPONSIVE_VIEWPORT_WIDTHS = {
@@ -150,45 +152,14 @@ export function deriveCarouselInferredWidths(slideWidth: ResponsiveSlideWidthPer
   return deriveLayoutResponsiveWidths(profile, Number.POSITIVE_INFINITY);
 }
 
-function parseGridGapToPx(gap: string): number {
-  const normalized = gap.trim();
-  const matched = normalized.match(/^(\d+(?:\.\d+)?)(px|rem)$/);
-
-  if (!matched) {
-    throw new Error(`Invalid photography.grid.gap: "${gap}". Expected px or rem value.`);
-  }
-
-  const value = Number.parseFloat(matched[1]);
-  if (!Number.isFinite(value) || value < 0) {
-    throw new Error(`Invalid photography.grid.gap: "${gap}". Expected a non-negative value.`);
-  }
-
-  return matched[2] === 'rem' ? value * 16 : value;
-}
-
-function deriveGridCellWidth(viewportWidth: number, columns: number, gapPx: number): number {
-  if (!Number.isInteger(columns) || columns <= 0) {
-    throw new Error(`Invalid grid columns: expected a positive integer, received ${String(columns)}.`);
-  }
-
-  const totalGap = (columns - 1) * gapPx;
-  const contentWidth = viewportWidth - totalGap;
-
-  if (contentWidth <= 0) {
-    throw new Error('Invalid gallery grid config: horizontal gaps exceed viewport width.');
-  }
-
-  return Math.round(contentWidth / columns);
-}
-
 export function deriveGalleryInferredWidthsFromGrid(grid: MediaConfig['grid']): number[] {
-  const gapPx = parseGridGapToPx(grid.gap);
-
-  return [
-    deriveGridCellWidth(RESPONSIVE_VIEWPORT_WIDTHS.mobile, grid.columns.mobile, gapPx),
-    deriveGridCellWidth(RESPONSIVE_VIEWPORT_WIDTHS.tablet, grid.columns.desktop, gapPx),
-    deriveGridCellWidth(RESPONSIVE_VIEWPORT_WIDTHS.desktop, grid.columns.desktop, gapPx),
+  const viewports = [
+    GRID_VIEWPORT_WIDTHS.mobile,
+    GRID_VIEWPORT_WIDTHS.tablet,
+    GRID_VIEWPORT_WIDTHS.desktop,
   ];
+
+  return deriveGridCellWidths(grid, viewports);
 }
 
 export function assertStrictlyIncreasingPositiveWidths(widths: unknown, key: string): number[] {
@@ -421,7 +392,7 @@ export function resolveContentImageMetadata(path: string): ImageMetadata | null 
   }
 
   // Try direct path first
-  const directMatch = CONTENT_IMAGE_MODULES[`../../content/${normalizedPath}`]?.default;
+  const directMatch = CONTENT_IMAGE_MODULES[`../../../content/${normalizedPath}`]?.default;
   if (directMatch) {
     return directMatch;
   }
@@ -429,7 +400,7 @@ export function resolveContentImageMetadata(path: string): ImageMetadata | null 
   // Try with photography/ prefix for featured media paths
   // config.jsonc paths like "0-travel/..." need to map to "photography/0-travel/..."
   const withPhotographyPrefix = `photography/${normalizedPath}`;
-  return CONTENT_IMAGE_MODULES[`../../content/${withPhotographyPrefix}`]?.default ?? null;
+  return CONTENT_IMAGE_MODULES[`../../../content/${withPhotographyPrefix}`]?.default ?? null;
 }
 
 function parseMediaPath(path: string): ParsedMediaPath | null {
@@ -683,7 +654,7 @@ export async function loadMediaTreeFromGallery(
       continue;
     }
 
-    const image = loadImageFromContentPath(path.replace('../../content/', ''), galleryImageOptions);
+    const image = loadImageFromContentPath(path.replace('../../../content/', ''), galleryImageOptions);
 
     if (!image) {
       continue;

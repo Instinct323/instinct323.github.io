@@ -9,9 +9,9 @@ declare module 'markdown-it' {
   }
 
   class MarkdownIt {
-    constructor(_options?: Options);
-    render(_markdown: string): string;
-    use(_plugin: unknown): this;
+    constructor(options?: Options);
+    render(markdown: string): string;
+    use(plugin: unknown): this;
   }
 
   export default MarkdownIt;

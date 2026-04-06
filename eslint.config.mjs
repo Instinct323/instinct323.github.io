@@ -51,6 +51,14 @@ export default [
     },
   },
 
+  // TypeScript declaration files - relax unused vars rule
+  {
+    files: ['**/*.d.ts'],
+    rules: {
+      'no-unused-vars': 'off',
+    },
+  },
+
   // Ignore patterns
   {
     ignores: [

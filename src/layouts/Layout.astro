@@ -153,6 +153,7 @@ const shellBackgroundPayload = JSON.stringify({
 // Fail-fast: title and description should be provided by pages or site config
 const resolvedTitle = title !== undefined ? title : assertString(siteMetadata.defaultTitle, 'siteMetadata.defaultTitle');
 const resolvedDescription = description !== undefined ? description : assertString(siteMetadata.defaultDescription, 'siteMetadata.defaultDescription');
+const keyword = siteMetadata.keyword;
 
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 const sitemapUrl = new URL('/sitemap-index.xml', siteUrl).toString();
@@ -167,6 +168,7 @@ const starfieldConfig = effectsConfig.starfield;
       generator={Astro.generator}
       title={resolvedTitle}
       description={resolvedDescription}
+      keyword={keyword}
       canonicalUrl={canonicalUrl}
       sitemapUrl={sitemapUrl}
       type={type}

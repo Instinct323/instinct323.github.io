@@ -44,8 +44,13 @@ const {
 
 <style>
   .gallery-section {
-    margin-bottom: var(--space-section-md);
-    scroll-margin-top: var(--section-anchor-scroll-margin);
+    /* Remove margin-bottom; spacing is handled by .gallery-container gap */
+    scroll-margin-top: var(--photo-scroll-offset);
+  }
+
+  /* First section has no top spacing (nav padding handles it) */
+  .gallery-section:not(:first-child) {
+    margin-top: var(--photo-gap-section);
   }
 
   .section-title {
@@ -57,10 +62,6 @@ const {
   }
 
   @media (max-width: 767px) {
-    .gallery-section {
-      margin-bottom: var(--space-section-sm);
-    }
-
     .section-title {
       font-size: 1.125rem;
     }

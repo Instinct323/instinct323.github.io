@@ -112,12 +112,13 @@ export async function loadPhotography(): Promise<PhotographyPageConfig> {
 }
 
 export async function loadSiteMetadata(): Promise<SiteMetadata> {
-  const { siteUrl, defaultTitle, defaultDescription } = siteConfig.metadata;
+  const { siteUrl, defaultTitle, defaultDescription, keyword } = siteConfig.metadata;
 
   return {
     siteUrl,
     defaultTitle,
     defaultDescription,
+    keyword,
   };
 }
 

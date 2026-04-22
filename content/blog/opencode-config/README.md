@@ -27,6 +27,7 @@ wsl
 通过命令行安装 [OpenCode](https://opencode.ai/zh)：
 
 ```bash
+npm config set registry https://registry.npmmirror.com
 npm i -g opencode-ai
 ```
 

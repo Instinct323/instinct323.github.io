@@ -5,6 +5,7 @@ export interface SiteMetadataInput {
   siteUrl: string;
   defaultTitle: string;
   defaultDescription: string;
+  keyword?: string;
 }
 
 export interface SiteMetadata extends SiteMetadataInput {

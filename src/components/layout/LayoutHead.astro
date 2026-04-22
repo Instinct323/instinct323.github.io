@@ -3,6 +3,7 @@ interface Props {
   generator: string;
   title: string;
   description: string;
+  keyword?: string;
   canonicalUrl: string;
   sitemapUrl: string;
   type: 'website' | 'article';
@@ -13,6 +14,7 @@ const {
   generator,
   title,
   description,
+  keyword,
   canonicalUrl,
   sitemapUrl,
   type,
@@ -24,6 +26,7 @@ const {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="generator" content={generator} />
 <meta name="description" content={description} />
+{keyword && <meta name="keywords" content={keyword} />}
 <link rel="canonical" href={canonicalUrl} />
 <link rel="sitemap" type="application/xml" href={sitemapUrl} />
 <meta property="og:title" content={title} />

@@ -39,9 +39,8 @@
         "0-travel/0-Northeast/1.jpg",
         "0-travel/2-Hong Kong/1.jpg",
         "0-travel/4-Guangzhou/4.jpg",
-        "1-me/1.jpg",
-        "1-me/0.jpg",
         "2-collection/1.jpg",
+        "2-collection/6.jpg",
         "2-collection/7.jpg"
       ],
       // Owned by interaction/accessibility maintainers; consumed by carousel controls and labels.
@@ -85,7 +84,7 @@
     // ref: https://codepen.io/AlexWarnes/pen/jXYYKL
     "placeholderEffect": "bars-height-wave"
   },
-// Owned by photography page editors; consumed by photography gallery grid calculations.
+  // Owned by photography page editors; consumed by photography gallery grid calculations.
   "photography": {
     "grid": {
       "columns": {
@@ -100,7 +99,7 @@
     "starfield": {
       "enabled": true,
       "starDensity": "high",
-      "starSize": { "min": 1.0, "max": 5.0 },
+      "starSize": {"min": 1.0, "max": 5.0},
       "speedFactor": 0.5,
       "maxDistance": 60,
       "linkOpacity": 0.5,
@@ -110,7 +109,7 @@
       "parallaxEffect": true,
       "parallaxStrength": 1,
       "mouseRadius": 200,
-      "rotationSpeed": { "min": 0.001, "max": 0.003 },
+      "rotationSpeed": {"min": 0.001, "max": 0.003},
       "connectionsWhenNoMouse": false,
       "percentStarsConnecting": 30,
       "lineThickness": 2

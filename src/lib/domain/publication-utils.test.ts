@@ -3,7 +3,6 @@ import {
   normalizePublication,
   formatPublicationLinkLabel,
   resolvePublicationLinks,
-  type PublicationLinkEntry,
 } from './publication-utils';
 import type { Publication } from '../../types';
 

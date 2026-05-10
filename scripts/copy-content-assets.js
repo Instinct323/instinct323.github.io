@@ -9,7 +9,7 @@ const publicDir = join(rootDir, 'public');
 
 function copyContentAssets() {
   if (!existsSync(contentDir)) {
-    console.log('No content directory found');
+    console.warn('No content directory found');
     return;
   }
 
@@ -25,10 +25,10 @@ function copyContentAssets() {
 
     mkdirSync(dirname(targetPath), { recursive: true });
     cpSync(dirPath, targetPath, { recursive: true });
-    console.log(`Copied: ${relativePath} → public/${relativePath}`);
+    console.warn(`Copied: ${relativePath} → public/${relativePath}`);
   }
 
-  console.log(`Content assets copied successfully (${dirsWithMarkdown.length} directories)`);
+  console.warn(`Content assets copied successfully (${dirsWithMarkdown.length} directories)`);
 }
 
 function findDirectoriesWithMarkdown(startDir) {

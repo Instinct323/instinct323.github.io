@@ -65,11 +65,6 @@ describe('resolveSiteImageConfig', () => {
       ...validConfig,
       quality: 0,
     };
-    const configWithZeroQuality = {
-      ...validConfig,
-      quality: 0,
-    };
-
     expect(() => resolveSiteImageConfig(configWithHighQuality)).toThrow(
       'Missing or invalid image.quality (must be an integer in [1, 100])'
     );

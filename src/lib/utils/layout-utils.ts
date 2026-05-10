@@ -1,7 +1,7 @@
 import {
   IMAGE_HIGH_WIDTHS_KEY,
   selectCandidateWidthsByPolicy,
-} from '../loaders/media-loader-core';
+} from './image-width-utils';
 
 export const LAYOUT_MOBILE_HEIGHT = 812;
 export const LAYOUT_DESKTOP_HEIGHT = 900;

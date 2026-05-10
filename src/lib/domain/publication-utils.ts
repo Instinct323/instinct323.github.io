@@ -23,13 +23,12 @@ function assertAuthors(value: unknown, filePath: string): string[] {
     throw new Error(`Invalid publication field "authors" in ${filePath}`);
   }
 
-  const authors = value.map((author, i) => assertString(author, `authors[${i}]`));
-
-  if (authors.length === 0) {
-    throw new Error(`Invalid publication field "authors" in ${filePath}`);
-  }
-
-  return authors;
+  return value.map((author) => {
+    if (typeof author !== 'string' || !author.trim()) {
+      throw new Error(`Invalid publication field "authors" in ${filePath}: expected non-empty strings`);
+    }
+    return author.trim();
+  });
 }
 
 function normalizePublicationLinks(raw: RawPublication): Record<string, string> | undefined {
@@ -52,6 +51,7 @@ function normalizePublicationLinks(raw: RawPublication): Record<string, string> 
       return [normalizedName, normalizedHref] as const;
     })
     .filter((entry): entry is readonly [string, string] => Boolean(entry))
+    // Links are sorted in canonical order here (used by resolvePublicationLinks)
     .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, 'en'));
 
   if (links.length === 0) {
@@ -98,7 +98,6 @@ export function formatPublicationLinkLabel(name: string): string {
 export function resolvePublicationLinks(publication: Publication): PublicationLinkEntry[] {
   return Object.entries(publication.links ?? {})
     .filter(([name, href]) => Boolean(name.trim() && href.trim()))
-    .sort(([nameA], [nameB]) => nameA.localeCompare(nameB, 'en'))
     .map(([name, href]) => {
       const normalizedName = name.trim();
       return {

@@ -1,68 +1,19 @@
-export const PAGE_LOAD_PRIORITY = ['frame', 'controls', 'background'] as const;
+import type {
+  PageLoadStage,
+  PageLoadPlan,
+  PageLoadResult,
+  ControlImagePriority,
+  ControlImageLoadingAttrs,
+} from '../../types/page-load';
 
-export type PageLoadStage = (typeof PAGE_LOAD_PRIORITY)[number];
-
-type MaybePromise<T> = T | Promise<T>;
-
-export interface PageLoadContext<TFrame, TBackground> {
-  frame: TFrame;
-  background: TBackground;
-}
-
-export interface PageLoadPlan<TFrame, TBackground, TControls> {
-  frame: () => MaybePromise<TFrame>;
-  background?: (_ctx: Pick<PageLoadContext<TFrame, TBackground>, 'frame'>) => MaybePromise<TBackground>;
-  controls?: (_ctx: Pick<PageLoadContext<TFrame, TBackground>, 'frame'>) => MaybePromise<TControls>;
-}
-
-export interface PageLoadResult<TFrame, TBackground, TControls> {
-  frame: TFrame;
-  background: TBackground;
-  controls: TControls;
-}
-
-export type ControlImagePriority = 'critical' | 'deferred';
-
-export interface ControlImageLoadingAttrs {
-  loading: 'eager' | 'lazy';
-  decoding: 'sync' | 'async';
-  fetchPriority: 'high' | 'auto';
-}
-
-export interface DeferredImageLazyLoadConfig {
-  rootMargin: string;
-  localDebugDelayMs: number;
-}
-
-export interface DeferredMountRuntimeConfig {
-  rootMargin: string;
-  mountDelayMs: number;
-}
+export { PAGE_LOAD_PRIORITY } from '../../types/page-load';
+export type { PageLoadStage };
 
 export function resolveControlImageLoading(priority: ControlImagePriority): ControlImageLoadingAttrs {
   if (priority === 'critical') {
-    return {
-      loading: 'eager',
-      decoding: 'sync',
-      fetchPriority: 'high',
-    };
+    return { loading: 'eager', decoding: 'sync', fetchPriority: 'high' };
   }
-
-  return {
-    loading: 'lazy',
-    decoding: 'async',
-    fetchPriority: 'auto',
-  };
-}
-
-export function resolveDeferredMountRuntimeConfig(
-  lazyLoad: DeferredImageLazyLoadConfig,
-  isDev: boolean,
-): DeferredMountRuntimeConfig {
-  return {
-    rootMargin: lazyLoad.rootMargin,
-    mountDelayMs: isDev ? lazyLoad.localDebugDelayMs : 0,
-  };
+  return { loading: 'lazy', decoding: 'async', fetchPriority: 'auto' };
 }
 
 export async function orchestratePageLoad<TFrame, TBackground = null, TControls = null>(
@@ -71,10 +22,5 @@ export async function orchestratePageLoad<TFrame, TBackground = null, TControls 
   const frame = await plan.frame();
   const controls = plan.controls ? await plan.controls({ frame }) : null;
   const background = plan.background ? await plan.background({ frame }) : null;
-
-  return {
-    frame,
-    background: background as TBackground,
-    controls: controls as TControls,
-  };
+  return { frame, background: background as TBackground, controls: controls as TControls };
 }

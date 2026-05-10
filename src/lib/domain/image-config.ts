@@ -1,4 +1,8 @@
 import type { SiteImageConfig } from '../../types';
+import type {
+  DeferredImageLazyLoadConfig,
+  DeferredMountRuntimeConfig,
+} from '../../types/page-load';
 import {
   assertFiniteNumber,
   assertObject,
@@ -7,7 +11,7 @@ import {
 import {
   IMAGE_LOADING_EFFECT_NAMES,
   type ImageLoadingEffectName,
-} from './image-loading-effect-registry';
+} from '../../types/image-effects';
 
 const IMAGE_LOADING_EFFECT_NAME_SET = new Set<string>(IMAGE_LOADING_EFFECT_NAMES);
 
@@ -43,6 +47,16 @@ export function resolveImagePlaceholderEffectConfig(config: unknown): SiteImageC
   }
 
   return effectName;
+}
+
+export function resolveDeferredMountRuntimeConfig(
+  lazyLoad: DeferredImageLazyLoadConfig,
+  isDev: boolean,
+): DeferredMountRuntimeConfig {
+  return {
+    rootMargin: lazyLoad.rootMargin,
+    mountDelayMs: isDev ? lazyLoad.localDebugDelayMs : 0,
+  };
 }
 
 export function resolveSiteImageConfig(config: unknown): SiteImageConfig {

@@ -6,10 +6,8 @@ import Footer from '../components/layout/Footer.astro';
 import Header from '../components/layout/Header.astro';
 import { loadEffectsConfig, loadMediaConfig, loadSiteMetadata } from '../lib/loaders/config-loader';
 import { buildShellStyle, type LayoutProps } from '../lib/domain/layout-shell';
-import {
-  RESPONSIVE_VIEWPORT_WIDTHS,
-  assertMediaConfigShape,
-} from '../lib/loaders/media-loader-core';
+import { RESPONSIVE_VIEWPORT_WIDTHS } from '../lib/utils/grid-width-utils';
+import { assertMediaConfigShape } from '../lib/loaders/media-validation';
 import { orchestratePageLoad } from '../lib/loaders/page-load-orchestrator';
 import {
   LAYOUT_MOBILE_HEIGHT,

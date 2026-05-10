@@ -1,6 +1,8 @@
 import { initStarfield } from './starfield-runtime';
 import { runWhenIdle, SHELL_BACKGROUND_TIMEOUT, SHELL_BACKGROUND_FALLBACK } from './scheduling';
 
+const ENABLE_STARFIELD = true;
+
 const SHELL_BACKGROUND_CACHE_KEY = 'site-shell-background-payload-v1';
 
 export interface ShellBackgroundPayload {
@@ -56,8 +58,8 @@ function applyShellBackgroundImagesWithCache(): void {
 
     try {
       window.sessionStorage.setItem(SHELL_BACKGROUND_CACHE_KEY, parsed.serializedPayload);
+    // Silent: privacy mode or restricted contexts
     } catch {
-      // Silent: privacy mode or restricted contexts
     }
   } catch (e) {
     console.error('Failed to apply shell background images:', e);
@@ -78,6 +80,7 @@ function applyShellBackgroundImagesFromSessionCache(): boolean {
 
     applyShellBackgroundImages(parsed.payload);
     return true;
+  // Silent: cache read failure
   } catch {
     return false;
   }
@@ -92,7 +95,7 @@ function scheduleShellBackgroundApply(): void {
   });
 }
 
-export function initLayout(): void {
+function initShellBackground(): void {
   if (!applyShellBackgroundImagesFromSessionCache()) {
     if (document.readyState === 'complete') {
       scheduleShellBackgroundApply();
@@ -100,12 +103,15 @@ export function initLayout(): void {
       window.addEventListener('load', scheduleShellBackgroundApply, { once: true });
     }
   }
+}
 
-  const backgroundCanvas = document.querySelector<HTMLCanvasElement>('.site-stars-background');
-  const starsCanvas = document.querySelector<HTMLCanvasElement>('.site-stars');
+function initializeStarfield(): void {
+  if (ENABLE_STARFIELD) {
+    const backgroundCanvas = document.querySelector<HTMLCanvasElement>('.site-stars-background');
+    const starsCanvas = document.querySelector<HTMLCanvasElement>('.site-stars');
 
-  if (backgroundCanvas && starsCanvas) {
-    try {
+    if (backgroundCanvas && starsCanvas) {
+      try {
       const serializedConfig = starsCanvas.dataset.starfield;
       if (!serializedConfig) {
         throw new Error('Missing data-starfield payload');
@@ -116,4 +122,10 @@ export function initLayout(): void {
       console.error('Failed to initialize starfield:', e);
     }
   }
+  }
+}
+
+export function initLayout(): void {
+  initShellBackground();
+  initializeStarfield();
 }

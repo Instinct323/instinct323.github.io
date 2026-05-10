@@ -15,10 +15,18 @@ export function initCarouselWithPrewarm(carouselRoot: HTMLElement): void {
 
   const initCarousel = () => {
     if (!initPromise) {
-      initPromise = prewarmCarouselModule().then((mod) => {
-        mod.registerFeaturedMediaCarouselReducedMotion();
-        mod.initFeaturedMediaCarousels();
-      });
+      initPromise = prewarmCarouselModule()
+        .then((mod) => {
+          try {
+            mod.registerFeaturedMediaCarouselReducedMotion();
+            mod.initFeaturedMediaCarousels();
+          } catch (error) {
+            console.error('[carousel] Initialization failed:', error);
+          }
+        })
+        .catch((error) => {
+          console.error('[carousel] Module load failed:', error);
+        });
     }
 
     return initPromise;
@@ -26,14 +34,18 @@ export function initCarouselWithPrewarm(carouselRoot: HTMLElement): void {
 
   // Prewarm carousel module during idle time or early user intent.
   runWhenIdle(() => {
-    void prewarmCarouselModule();
+    void prewarmCarouselModule().catch((error) => {
+      console.error('[carousel] Idle prewarm failed:', error);
+    });
   }, {
     timeout: CAROUSEL_PREWARM_TIMEOUT,
     fallbackDelayMs: CAROUSEL_PREWARM_FALLBACK,
   });
 
   const prewarmOnIntent = () => {
-    void prewarmCarouselModule();
+    void prewarmCarouselModule().catch((error) => {
+      console.error('[carousel] Intent prewarm failed:', error);
+    });
   };
 
   carouselRoot.addEventListener('pointermove', prewarmOnIntent, { once: true, passive: true });

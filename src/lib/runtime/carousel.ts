@@ -1,10 +1,16 @@
 import Swiper from 'swiper';
 import type { Swiper as SwiperInstance } from 'swiper';
 import { EffectCoverflow, Keyboard, Navigation, Pagination } from 'swiper/modules';
+import { parseNumericAttr } from '../utils/content-normalize';
 
 const ROOT_SELECTOR = '.home-carousel';
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 const SWIPER_INIT_FLAG = 'swiperInitialized';
+
+// Carousel configuration constants
+const CAROUSEL_ANIMATION_SPEED_MS = 600;
+const CAROUSEL_COVERFLOW_DEPTH = 100;
+const CAROUSEL_COVERFLOW_MODIFIER = 2.5;
 
 let reducedMotionQuery: MediaQueryList | null = null;
 let reducedMotionListenerBound = false;
@@ -44,8 +50,8 @@ function updateProgress(swiper: SwiperInstance, slideCount: number): void {
 
 function getCounterPadLength(swiper: SwiperInstance): number {
   const raw = swiper.el.getAttribute('data-counter-pad-length');
-  const parsed = Number.parseInt(raw ?? '', 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 2;
+  const parsed = parseNumericAttr(raw, 2);
+  return parsed > 0 ? parsed : 2;
 }
 
 function updateCounter(swiper: SwiperInstance): void {
@@ -90,8 +96,8 @@ function getSlideCount(root: HTMLElement): number {
 
 function getSpaceBetween(root: HTMLElement): number {
   const raw = root.getAttribute('data-space-between');
-  const parsed = Number.parseFloat(raw ?? '');
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  const parsed = parseNumericAttr(raw, 0, { float: true });
+  return parsed >= 0 ? parsed : 0;
 }
 
 function getFirstOptionalHTMLElement(root: ParentNode, selectors: string[]): HTMLElement | null {
@@ -107,7 +113,7 @@ function getFirstOptionalHTMLElement(root: ParentNode, selectors: string[]): HTM
 
 function applyMotionSettings(swiper: SwiperInstance): void {
   const useReducedMotion = prefersReducedMotion();
-  swiper.params.speed = useReducedMotion ? 0 : 600;
+  swiper.params.speed = useReducedMotion ? 0 : CAROUSEL_ANIMATION_SPEED_MS;
   swiper.params.effect = useReducedMotion ? 'slide' : 'coverflow';
 }
 
@@ -134,15 +140,15 @@ function initSwiper(root: SwiperRoot, slideCount: number): void {
     coverflowEffect: {
       rotate: 0,
       stretch: 0,
-      depth: 100,
-      modifier: 2.5,
+      depth: CAROUSEL_COVERFLOW_DEPTH,
+      modifier: CAROUSEL_COVERFLOW_MODIFIER,
       slideShadows: true,
     },
     centeredSlides: true,
     slidesPerView: 'auto',
     spaceBetween,
     loop: true,
-    speed: useReducedMotion ? 0 : 600,
+    speed: useReducedMotion ? 0 : CAROUSEL_ANIMATION_SPEED_MS,
     keyboard: {
       enabled: true,
       onlyInViewport: true,

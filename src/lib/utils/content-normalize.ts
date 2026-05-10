@@ -42,3 +42,15 @@ export function sanitizePositiveWidths(widths: number[] | undefined): number[] {
     )
   ).sort((a, b) => a - b);
 }
+
+export function parseNumericAttr(
+  value: string | null,
+  fallback: number,
+  options?: { float?: boolean }
+): number {
+  if (value === null) return fallback;
+  const parsed = options?.float
+    ? Number.parseFloat(value)
+    : Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}

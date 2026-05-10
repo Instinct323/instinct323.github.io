@@ -1,3 +1,5 @@
+import type { ImageLoadingEffectName } from '../../types/image-effects';
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export const IMAGE_LOADING_EFFECTS = {
@@ -10,8 +12,6 @@ export const IMAGE_LOADING_EFFECTS = {
   'bars-opacity-step': `<svg xmlns="${SVG_NS}" width="24" height="30" viewBox="0 0 24 30" aria-hidden="true" focusable="false"><rect x="0" y="0" width="4" height="20" fill="#333"><animate attributeName="opacity" attributeType="XML" values="1;.2;1" begin="0s" dur="0.6s" repeatCount="indefinite"/></rect><rect x="7" y="0" width="4" height="20" fill="#333"><animate attributeName="opacity" attributeType="XML" values="1;.2;1" begin="0.2s" dur="0.6s" repeatCount="indefinite"/></rect><rect x="14" y="0" width="4" height="20" fill="#333"><animate attributeName="opacity" attributeType="XML" values="1;.2;1" begin="0.4s" dur="0.6s" repeatCount="indefinite"/></rect></svg>`,
   'bars-opacity-height': `<svg xmlns="${SVG_NS}" width="24" height="30" viewBox="0 0 24 30" aria-hidden="true" focusable="false"><rect x="0" y="10" width="4" height="10" fill="#333" opacity="0.2"><animate attributeName="opacity" attributeType="XML" values="0.2;1;.2" begin="0s" dur="0.6s" repeatCount="indefinite"/><animate attributeName="height" attributeType="XML" values="10;20;10" begin="0s" dur="0.6s" repeatCount="indefinite"/><animate attributeName="y" attributeType="XML" values="10;5;10" begin="0s" dur="0.6s" repeatCount="indefinite"/></rect><rect x="8" y="10" width="4" height="10" fill="#333" opacity="0.2"><animate attributeName="opacity" attributeType="XML" values="0.2;1;.2" begin="0.15s" dur="0.6s" repeatCount="indefinite"/><animate attributeName="height" attributeType="XML" values="10;20;10" begin="0.15s" dur="0.6s" repeatCount="indefinite"/><animate attributeName="y" attributeType="XML" values="10;5;10" begin="0.15s" dur="0.6s" repeatCount="indefinite"/></rect><rect x="16" y="10" width="4" height="10" fill="#333" opacity="0.2"><animate attributeName="opacity" attributeType="XML" values="0.2;1;.2" begin="0.3s" dur="0.6s" repeatCount="indefinite"/><animate attributeName="height" attributeType="XML" values="10;20;10" begin="0.3s" dur="0.6s" repeatCount="indefinite"/><animate attributeName="y" attributeType="XML" values="10;5;10" begin="0.3s" dur="0.6s" repeatCount="indefinite"/></rect></svg>`,
 } as const;
-
-export type ImageLoadingEffectName = keyof typeof IMAGE_LOADING_EFFECTS;
 
 export const IMAGE_LOADING_EFFECT_NAMES = Object.keys(IMAGE_LOADING_EFFECTS) as ImageLoadingEffectName[];
 

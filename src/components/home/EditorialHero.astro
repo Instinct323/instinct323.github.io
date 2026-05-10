@@ -1,5 +1,6 @@
 ---
 import type { Home, HomepageConfig, ResolvedProfileData } from '../../lib/loaders/content-loader';
+import type { HomepageHeroDeckField } from '../../types/home';
 
 // Contract: Render the identity-focused hero copy block on the home page,
 // combining profile metadata with home-specific editorial text.
@@ -17,12 +18,17 @@ const heroEyebrow = home.eyebrow?.trim() ?? '';
 const showDeckDivider = settings.showDeckDivider;
 
 // Keep deck field normalization in one place so template rendering stays linear.
-const deckFieldValues = {
+const deckFieldValues: Record<HomepageHeroDeckField, string> = {
   location: profile.location.trim(),
   organization: profile.organization.trim(),
-} as const;
+};
 
-const deckItems = settings.deckFields.flatMap((field) => {
+interface DeckItem {
+  className: string;
+  value: string;
+}
+
+const deckItems: DeckItem[] = settings.deckFields.flatMap((field: HomepageHeroDeckField) => {
   const value = deckFieldValues[field];
   if (!value) {
     return [];
@@ -42,7 +48,7 @@ const deckItems = settings.deckFields.flatMap((field) => {
     )}
     <h1 class="site-hero-title hero-title-accent title-accent">{profileName}</h1>
     <p class="deck">
-      {deckItems.map((item, index) => [
+      {deckItems.map((item: DeckItem, index: number) => [
         // Render separators from index to avoid branching inside data setup.
         index > 0 && showDeckDivider ? <span class="deck-divider"></span> : null,
         <span class:list={[item.className]}>{item.value}</span>,

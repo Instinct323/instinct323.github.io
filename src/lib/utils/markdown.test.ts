@@ -77,4 +77,50 @@ date: 2024-01-01
     expect(result.title).toBeNull();
     expect(result.content).toBe('# Content');
   });
+
+  it('extracts date from frontmatter as string', () => {
+    const input = `---
+title: Hello
+date: 2024-01-15
+---
+
+Content`;
+
+    const result = parseMarkdownWithFrontmatter(input);
+    expect(result.date).toBeInstanceOf(Date);
+    expect(result.date!.getFullYear()).toBe(2024);
+    expect(result.date!.getMonth()).toBe(0);
+    expect(result.date!.getDate()).toBe(15);
+  });
+
+  it('returns null date when frontmatter has no date', () => {
+    const input = `---
+title: Hello
+---
+
+Content`;
+
+    const result = parseMarkdownWithFrontmatter(input);
+    expect(result.date).toBeNull();
+  });
+
+  it('returns null date when frontmatter date is invalid', () => {
+    const input = `---
+title: Hello
+date: not-a-date
+---
+
+Content`;
+
+    const result = parseMarkdownWithFrontmatter(input);
+    expect(result.date).toBeNull();
+  });
+
+  it('returns null date when no frontmatter exists', () => {
+    const input = `# Just content
+No frontmatter here`;
+
+    const result = parseMarkdownWithFrontmatter(input);
+    expect(result.date).toBeNull();
+  });
 });

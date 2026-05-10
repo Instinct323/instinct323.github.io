@@ -28,6 +28,23 @@ function resolvePhotographyConfig(config: SiteConfig['photography']): Photograph
   };
 }
 
+/**
+ * Parses raw site configuration JSONC string into a typed SiteConfig object.
+ *
+ * @sideEffect This function is called at module load time (line 71), not lazily.
+ * When this module is imported, the configuration is parsed immediately.
+ * This has important implications:
+ * - Testing: The parsed config is cached in module scope. Tests that modify
+ *   source files or mock the config loader may encounter stale cached values.
+ * - Module imports: Any import of this module triggers config parsing, even if
+ *   the imported functions are never called. This is eager evaluation.
+ * - Runtime: Config errors will surface immediately on first import, not on
+ *   first function call.
+ *
+ * @param raw - Raw JSONC string from site config file
+ * @returns Parsed SiteConfig object
+ * @throws Error if parsed config is not a valid object
+ */
 function parseSiteConfig(raw: string): SiteConfig {
   const parsed = parse(raw);
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -67,30 +84,32 @@ function normalizeProfile(profileData: ProfileData): ProfileData {
   };
 }
 
-export async function loadProfile(): Promise<ProfileData> {
+export function loadProfile(): ProfileData {
   return normalizeProfile(profile as ProfileData);
 }
 
-export async function loadSiteConfig(): Promise<SiteConfig> {
+export function loadSiteConfig(): SiteConfig {
   return siteConfig;
 }
 
-export async function loadNavigationConfig(): Promise<NavigationConfig> {
+export function loadNavigationConfig(): NavigationConfig {
   return siteConfig.navigation;
 }
 
-export async function loadHomepageConfig(): Promise<HomePageConfigGroup> {
+export function loadHomepageConfig(): HomePageConfigGroup {
   const { home } = siteConfig;
+  const featuredMedia = buildFeaturedMediaConfig(home.featuredMedia);
 
   return {
     hero: home.hero,
     layout: home.layout,
     editorialHero: home.editorialHero,
-    featuredMedia: buildFeaturedMediaConfig(home.featuredMedia),
+    featuredMedia,
+    featuredCarousel: featuredMedia.carousel,
   };
 }
 
-export async function loadMediaConfig(): Promise<MediaConfig> {
+export function loadMediaConfig(): MediaConfig {
   const featuredMedia = buildFeaturedMediaConfig(siteConfig.home.featuredMedia);
 
   return {
@@ -103,15 +122,15 @@ export async function loadMediaConfig(): Promise<MediaConfig> {
   };
 }
 
-export async function loadIntroduction(): Promise<string> {
+export function loadIntroduction(): string {
   return introductionRaw;
 }
 
-export async function loadPhotography(): Promise<PhotographyPageConfig> {
+export function loadPhotography(): PhotographyPageConfig {
   return resolvePhotographyConfig(siteConfig.photography);
 }
 
-export async function loadSiteMetadata(): Promise<SiteMetadata> {
+export function loadSiteMetadata(): SiteMetadata {
   const { siteUrl, defaultTitle, defaultDescription, keyword } = siteConfig.metadata;
 
   return {

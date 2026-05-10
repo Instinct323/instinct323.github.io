@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import GallerySection from '../components/photography/GallerySection.astro';
 import { loadMediaTree, loadPhotography } from '../lib/loaders/content-loader';
 import { loadMediaConfig } from '../lib/loaders/config-loader';
-import { buildDeferredMountRuntimePayload } from '../lib/runtime/deferred-mount-page';
+import { buildDeferredMountRuntimePayload } from '../lib/runtime/deferred-mount-bootstrap';
 import { orchestratePageLoad } from '../lib/loaders/page-load-orchestrator';
 
 const photographyLoad = await orchestratePageLoad({
@@ -77,7 +77,7 @@ const galleryLazyRuntimePayload = buildDeferredMountRuntimePayload(imageConfig.l
   import {
     buildDeferredMountBootstrapOptions,
     initDeferredMountGroupSafely,
-  } from '../lib/runtime/deferred-mount-page';
+  } from '../lib/runtime/deferred-mount-bootstrap';
 
   initDeferredMountGroupSafely(
     buildDeferredMountBootstrapOptions(

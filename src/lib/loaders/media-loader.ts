@@ -1,6 +1,7 @@
 import { loadMediaConfig } from './config-loader';
 import { ABOUT_AVATAR_SIZES } from './content-paths';
 import { buildGridSizesString, MOBILE_BREAKPOINT } from '../utils/grid-width-utils';
+import { createCachedLoader } from '../utils/cache';
 import type {
   ContentImage,
   ContentImageOptions,
@@ -9,20 +10,26 @@ import type {
   MediaImage,
   MediaTree,
 } from '../../types';
+import { loadContentImageResolved } from './media-loader-core';
 import {
   HOME_COVERFLOW_SIZES,
+  deriveGalleryInferredWidthsFromGrid,
+} from './media-responsive';
+import {
   IMAGE_MEDIUM_WIDTHS_KEY,
   assertMediaConfigShape,
-  deriveGalleryInferredWidthsFromGrid,
   getValidatedHomepageGalleryConfig,
+  selectCandidateWidthsByPolicy,
+} from './media-validation';
+import {
   loadFeaturedSlidesForHomepage,
   loadMediaTreeFromGallery,
-  loadContentImageResolved,
-  selectCandidateWidthsByPolicy,
-} from './media-loader-core';
+} from './media-tree';
 
-let mediaConfigCache: MediaConfig | null = null;
-let mediaConfigPromise: Promise<MediaConfig> | null = null;
+const getMediaConfigCached = createCachedLoader(loadMediaConfig, {
+  init: assertMediaConfigShape,
+});
+
 const ABOUT_AVATAR_SIZES_STRING = `(max-width: ${MOBILE_BREAKPOINT}px) ${ABOUT_AVATAR_SIZES[0]}px, ${ABOUT_AVATAR_SIZES[1]}px`;
 const ABOUT_AVATAR_INFERRED_WIDTHS = [...ABOUT_AVATAR_SIZES];
 
@@ -46,30 +53,6 @@ function resolveMediumSurfaceProfile(
     inferredWidths: deriveGalleryInferredWidthsFromGrid(mediaConfig.grid),
     sizes: buildGallerySizes(mediaConfig.grid),
   };
-}
-
-async function getMediaConfigCached(): Promise<MediaConfig> {
-  if (import.meta.env.DEV) {
-    const config = await loadMediaConfig();
-    assertMediaConfigShape(config);
-    mediaConfigCache = config;
-    mediaConfigPromise = Promise.resolve(config);
-    return config;
-  }
-
-  if (mediaConfigCache) {
-    return mediaConfigCache;
-  }
-
-  if (!mediaConfigPromise) {
-    mediaConfigPromise = loadMediaConfig().then((config) => {
-      assertMediaConfigShape(config);
-      mediaConfigCache = config;
-      return config;
-    });
-  }
-
-  return mediaConfigPromise;
 }
 
 async function deriveContentImageOptionsFromConfig(

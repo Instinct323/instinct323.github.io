@@ -1,36 +1,55 @@
 // Barrel export for centralized type definitions
 // Re-export all types from category files
 
-// Site types
+// Site core types
 export type {
   SiteConfig,
   SiteMetadata,
   SiteMetadataConfig,
   NavigationConfig,
   SiteNavigation,
-  GridColumns,
-  MediaGridConfig,
-  SiteImageConfig,
-  StarfieldEffectConfig,
-  SiteEffectsConfig,
+  SiteMetadataInput,
+  PhotographyPageConfig,
+  MediaConfig,
+  Publication,
+  AboutPageData,
+} from './site';
+
+// Home page types
+export type {
   HomepageSectionKey,
   HomepageHeroDeckField,
   HomepageEditorialGapVariant,
   HomePageHero,
-  HomePageImageConfig,
-  HomePageCarouselSlideWidth,
-  HomePageCarouselVisualConfig,
-  HomePageCarouselConfig,
   HomePageFeaturedMediaConfig,
   HomePageConfig,
   HomePageConfigGroup,
-  PhotographyPageConfig,
-  MediaConfig,
-  Publication,
   Home,
   HomepageConfig,
   HomepageConfigSlice,
-} from './site';
+  HomePageData,
+} from './home';
+
+// Carousel types
+export type {
+  HomePageCarouselSlideWidth,
+  HomePageCarouselVisualConfig,
+  HomePageCarouselConfig,
+} from './carousel';
+
+// Image config types
+export type {
+  GridColumns,
+  MediaGridConfig,
+  SiteImageConfig,
+  HomePageImageConfig,
+} from './image-config';
+
+// Effects types
+export type {
+  StarfieldEffectConfig,
+  SiteEffectsConfig,
+} from './effects';
 
 // Profile types
 export type {
@@ -55,8 +74,3 @@ export type {
   MediaTree,
   FeaturedSlide,
 } from './media';
-
-export type {
-  AboutPageData,
-  HomePageData,
-} from './site';

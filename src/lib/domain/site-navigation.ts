@@ -1,4 +1,4 @@
-import { loadNavigationConfig } from '../loaders/config-loader';
+import type { NavigationConfig } from '../../types';
 
 export interface SiteNavRoute {
   key: string;
@@ -52,12 +52,9 @@ function buildNavItems(routeKeys: string[]): SiteNavItem[] {
   }));
 }
 
-export async function loadPrimaryNavModel(): Promise<SiteNavModel> {
-  const navigation = await loadNavigationConfig();
-  const order = navigation.order;
-
+export function buildPrimaryNavModel(navigation: NavigationConfig): SiteNavModel {
   return {
-    ariaLabel: '',
-    items: buildNavItems(order),
+    ariaLabel: 'Primary navigation',
+    items: buildNavItems(navigation.order),
   };
 }

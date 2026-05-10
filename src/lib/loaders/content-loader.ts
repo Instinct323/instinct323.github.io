@@ -11,6 +11,7 @@ import type {
   ContentImage,
   HomePageData,
   ProfileData,
+  Publication,
   ResolvedProfileData,
 } from '../../types';
 import {
@@ -20,40 +21,9 @@ import {
   loadMediaTree,
 } from './media-loader';
 import { renderMarkdown } from '../utils/markdown';
-import type { Publication } from '../../types';
 import { normalizePublication } from '../domain/publication-utils';
 import { AVATAR_JPG } from './content-paths';
-
-export type {
-  AboutPageData,
-  ContentImage,
-  ContentImageOptions,
-  ContentImageResponsive,
-  FeaturedSlide,
-  GridColumns,
-  Home,
-  HomePageConfig,
-  HomePageConfigGroup,
-  HomePageFeaturedMediaConfig,
-  HomePageHero,
-  HomePageImageConfig,
-  HomePageData,
-  MediaAlbum,
-  MediaCategory,
-  MediaGridConfig,
-  MediaImage,
-  MediaTree,
-  HomepageConfig,
-  HomepageEditorialGapVariant,
-  HomepageHeroDeckField,
-  HomepageSectionKey,
-  PhotographyPageConfig,
-  ProfileData,
-  ResolvedProfileData,
-  ProfileFact,
-  Publication,
-  SiteConfig,
-} from '../../types';
+import { PUBLICATION_MODULES } from './astro-adapter';
 
 export {
   deriveContentImageOptions,
@@ -67,17 +37,41 @@ export {
   stripNumericPrefix,
 };
 
+// Re-export types for convenience
+export type {
+  // Site types
+  AboutPageData,
+  // Profile types
+  ProfileFact,
+  ProfileData,
+  ResolvedProfileData,
+} from '../../types';
+
+// Re-export Home types
+export type {
+  HomePageHero as Home,
+  HomePageConfigGroup as HomepageConfig,
+} from '../../types/home';
+
+// Re-export Carousel types  
+export type {
+  FeaturedSlide,
+} from '../../types/media';
+
+// Re-export Media types
+export type {
+  MediaImage,
+  MediaAlbum,
+} from '../../types/media';
+
+// Re-export Image config types
+export type {
+  GridColumns,
+} from '../../types/image-config';
+
 const REQUIRED_PROFILE_FACT_IDS = ['name', 'organization', 'location'] as const;
 
 type RequiredProfileFactId = (typeof REQUIRED_PROFILE_FACT_IDS)[number];
-
-// Publication modules glob — paths defined in content-paths.ts: PUBLICATION_GLOB
-// Using hardcoded path because Vite's import.meta.glob requires string literals
-// See PUBLICATION_GLOB constant in content-paths.ts for the canonical path
-const PUBLICATION_MODULES = import.meta.glob<{ default: Publication }>(
-  '../../../content/about/publication/*.json',
-  { eager: true },
-);
 
 function requireProfileFactValue(profileData: ProfileData, id: RequiredProfileFactId): string {
   const fact = profileData.facts.find((item) => item.id === id);
@@ -166,7 +160,7 @@ export async function loadHomePage(): Promise<HomePageData> {
     loadHomepageConfig(),
   ]);
 
-  const site = await loadSiteConfig();
+  const site = loadSiteConfig();
 
   return {
     profile: normalizeProfileForHome(profileData),

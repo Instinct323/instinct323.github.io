@@ -1,8 +1,9 @@
 ---
-import { loadPrimaryNavModel } from '../../lib/domain/site-navigation';
+import { buildPrimaryNavModel } from '../../lib/domain/site-navigation';
+import { loadNavigationConfig } from '../../lib/loaders/config-loader';
 
 const currentRoutePath = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const primaryNavigation = await loadPrimaryNavModel();
+const primaryNavigation = buildPrimaryNavModel(loadNavigationConfig());
 ---
 
 <header class="is-sticky" data-testid="primary-header" data-sticky="true">

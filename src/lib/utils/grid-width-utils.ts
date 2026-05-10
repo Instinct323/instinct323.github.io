@@ -1,3 +1,4 @@
+
 import { assertPositiveInteger } from './assertions';
 
 export const MOBILE_BREAKPOINT = 767;
@@ -15,7 +16,7 @@ export interface GridDefinition {
   gap: string;
 }
 
-function parse_grid_gap_to_px(gap: string): number {
+function parseGridGapToPx(gap: string): number {
   const normalized = gap.trim();
   const matched = normalized.match(/^(\d+(?:\.\d+)?)(px|rem)$/);
 
@@ -31,43 +32,43 @@ function parse_grid_gap_to_px(gap: string): number {
   return matched[2] === 'rem' ? value * 16 : value;
 }
 
-function derive_grid_cell_width(viewport_width: number, columns: number, gap_px: number): number {
+function deriveGridCellWidth(viewportWidth: number, columns: number, gapPx: number): number {
   if (!Number.isInteger(columns) || columns <= 0) {
     throw new Error(`Invalid grid columns: expected a positive integer, received ${String(columns)}.`);
   }
 
-  const total_gap = (columns - 1) * gap_px;
-  const content_width = viewport_width - total_gap;
+  const totalGap = (columns - 1) * gapPx;
+  const contentWidth = viewportWidth - totalGap;
 
-  if (content_width <= 0) {
+  if (contentWidth <= 0) {
     throw new Error('Invalid gallery grid config: horizontal gaps exceed viewport width.');
   }
 
-  return Math.round(content_width / columns);
+  return Math.round(contentWidth / columns);
 }
 
 export function deriveGridCellWidths(grid: GridDefinition, viewports: number[]): number[] {
-  const gap_px = parse_grid_gap_to_px(grid.gap);
+  const gapPx = parseGridGapToPx(grid.gap);
 
   return [
-    derive_grid_cell_width(viewports[0], grid.columns.mobile, gap_px),
-    derive_grid_cell_width(viewports[1], grid.columns.desktop, gap_px),
-    derive_grid_cell_width(viewports[2], grid.columns.desktop, gap_px),
+    deriveGridCellWidth(viewports[0], grid.columns.mobile, gapPx),
+    deriveGridCellWidth(viewports[1], grid.columns.desktop, gapPx),
+    deriveGridCellWidth(viewports[2], grid.columns.desktop, gapPx),
   ];
 }
 
 export function buildGridSizesString(grid: GridDefinition): string {
-  const mobile_columns = assertPositiveInteger(
+  const mobileColumns = assertPositiveInteger(
     grid.columns.mobile,
     'photography.grid.columns.mobile',
   );
-  const desktop_columns = assertPositiveInteger(
+  const desktopColumns = assertPositiveInteger(
     grid.columns.desktop,
     'photography.grid.columns.desktop',
   );
 
-  const mobile_width = (100 / mobile_columns).toFixed(2);
-  const desktop_width = (100 / desktop_columns).toFixed(2);
+  const mobile_width = (100 / mobileColumns).toFixed(2);
+  const desktop_width = (100 / desktopColumns).toFixed(2);
 
   return [
     `(max-width: ${MOBILE_BREAKPOINT}px) ${mobile_width}vw`,

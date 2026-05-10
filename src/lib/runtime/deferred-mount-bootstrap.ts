@@ -1,6 +1,7 @@
-import { buildDeferredMountGroupSelector } from './deferred-mount-contract';
-import { initDeferredMounts } from './deferred-mount-runtime';
+import { buildDeferredMountGroupSelector, initDeferredMounts } from './deferred-mount';
 import { assertString } from '../utils/assertions';
+import type { SiteImageConfig } from '../../types';
+import { resolveDeferredMountRuntimeConfig } from '../domain/image-config';
 
 export interface DeferredMountBootstrapOptions {
   containerSelector: string;
@@ -48,4 +49,46 @@ export function bootstrapDeferredMounts(options: DeferredMountBootstrapOptions):
     rootMargin: runtimeConfig.rootMargin,
     mountDelayMs: runtimeConfig.mountDelayMs,
   });
+}
+
+export function buildDeferredMountRuntimePayload(
+  lazyLoad: SiteImageConfig['lazyLoad'],
+  isDev: boolean,
+): string {
+  const runtimeConfig = resolveDeferredMountRuntimeConfig(lazyLoad, isDev);
+  return JSON.stringify(runtimeConfig);
+}
+
+export function buildDeferredMountBootstrapOptions(
+  containerSelector: string,
+  configDataKey: string,
+  mountGroup: string,
+): DeferredMountBootstrapOptions {
+  return {
+    containerSelector,
+    configDataKey,
+    mountGroup,
+  };
+}
+
+export function initDeferredMountGroupSafely(
+  options: DeferredMountBootstrapOptions,
+  errorContext: string,
+): void {
+  try {
+    bootstrapDeferredMounts(options);
+  } catch (e) {
+    console.error(`Failed to initialize ${errorContext} deferred loading:`, e);
+  }
+}
+
+export function initHomeCarouselDeferredMounts(): void {
+  initDeferredMountGroupSafely(
+    buildDeferredMountBootstrapOptions(
+      '.home-carousel[data-carousel-lazy-config]',
+      'carouselLazyConfig',
+      'home-carousel-image',
+    ),
+    'home carousel',
+  );
 }
